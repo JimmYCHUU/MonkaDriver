@@ -30,9 +30,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends desktop-file-utils rpm
-      - run: desktop-file-validate packaging/monka-driver.desktop
-      - run: rpmspec -P packaging/monka-driver.spec > /dev/null
+      - run: desktop-file-validate packaging/monkey-wrench.desktop
+      - run: rpmspec -P packaging/monkey-wrench.spec > /dev/null
         env:
           MONKA_UNPACKED: /tmp/unpacked
           MONKA_SRC: ${{ github.workspace }}
-      - run: sh -n packaging/build-rpm.sh scripts/extract-vendor.sh packaging/monka-driver
+      - run: sh -n packaging/build-rpm.sh scripts/extract-vendor.sh packaging/monkey-wrench

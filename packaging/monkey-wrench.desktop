@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Monkey Wrench
+GenericName=Keyboard Configurator
+Comment=Configure Monka keyboards: key mapping, lighting, macros
+Comment[zh_CN]=魔咖键盘驱动
+Exec=/usr/bin/monkey-wrench %U
+Icon=monkey-wrench
+Terminal=false
+Categories=Utility;Settings;HardwareSettings;
+Keywords=keyboard;Monka;RGB;macro;driver;
+StartupNotify=true
+StartupWMClass=monkey-wrench
+SingleMainWindow=true

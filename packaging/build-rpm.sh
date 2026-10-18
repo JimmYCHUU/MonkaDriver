@@ -2,12 +2,12 @@
 # Build the RPM from the electron-builder "dir" output using Fedora's rpmbuild
 # inside Docker (the host has neither rpmbuild nor password-less sudo).
 #   npm run pack          -> release/linux-unpacked/
-#   packaging/build-rpm.sh -> release/monka-driver-<ver>-1.fc44.x86_64.rpm
+#   packaging/build-rpm.sh -> release/monkey-wrench-<ver>-2.fc44.x86_64.rpm
 set -eu
 cd "$(dirname "$0")/.."
 ROOT="$PWD"
 UNPACKED="$ROOT/release/linux-unpacked"
-[ -x "$UNPACKED/monka-driver" ] || { echo "run 'npm run pack' first (missing $UNPACKED/monka-driver)" >&2; exit 1; }
+[ -x "$UNPACKED/monkey-wrench" ] || { echo "run 'npm run pack' first (missing $UNPACKED/monkey-wrench)" >&2; exit 1; }
 
 IMAGE=monka-rpmbuild
 docker build -q -t "$IMAGE" packaging >/dev/null
@@ -19,6 +19,6 @@ docker run --rm -u "$(id -u):$(id -g)" \
   -e MONKA_SRC=/work \
   -e HOME=/tmp \
   "$IMAGE" \
-  rpmbuild --define "_topdir /work/rpmbuild" -bb /work/packaging/monka-driver.spec
+  rpmbuild --define "_topdir /work/rpmbuild" -bb /work/packaging/monkey-wrench.spec
 cp "$ROOT"/rpmbuild/RPMS/x86_64/*.rpm "$ROOT/release/"
 ls -l "$ROOT"/release/*.rpm

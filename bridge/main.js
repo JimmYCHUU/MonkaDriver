@@ -11,10 +11,10 @@ const { createService } = require('./service');
 const env = process.env;
 const argv = process.argv.slice(2);
 const PORT = Number(env.MONKA_PORT || 3814);
-const userData = env.MONKA_USERDATA || path.join(os.homedir(), '.config', 'monka-driver');
+const userData = env.MONKA_USERDATA || path.join(os.homedir(), '.config', 'monkey-wrench');
 const readOnly = !(env.MONKA_READ_ONLY === '0' || env.MONKA_READ_ONLY === 'false' || argv.includes('--rw'));
 const fake = env.MONKA_FAKE_HID === '1' || argv.includes('--fake-hid');
-const logFile = env.MONKA_LOG || path.join(os.homedir(), '.cache', 'monka-driver', 'bridge.log');
+const logFile = env.MONKA_LOG || path.join(os.homedir(), '.cache', 'monkey-wrench', 'bridge.log');
 const token = env.MONKA_TOKEN || undefined;
 
 try { fs.mkdirSync(path.dirname(logFile), { recursive: true }); } catch { /* ignore */ }

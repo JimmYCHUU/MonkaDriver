@@ -1,15 +1,16 @@
-# MonkaDriver ⌨️
+# Monkey Wrench 🔧
 
-[![CI](https://github.com/JimmYCHUU/MonkaDriver/actions/workflows/ci.yml/badge.svg)](https://github.com/JimmYCHUU/MonkaDriver/actions/workflows/ci.yml)
+[![CI](https://github.com/JimmYCHUU/MonkeyWrench/actions/workflows/ci.yml/badge.svg)](https://github.com/JimmYCHUU/MonkeyWrench/actions/workflows/ci.yml)
 ![Node.js 22 or newer](https://img.shields.io/badge/node-%E2%89%A522-339933)
 ![Electron 44](https://img.shields.io/badge/electron-44-47848F)
 ![Fedora 44 KDE](https://img.shields.io/badge/fedora-44%20KDE-51A2DA)
 ![Writes guarded](https://img.shields.io/badge/dev%20runs-read--only%20guard-orange)
 
-The Monka keyboard driver on Linux. Monka ships its configurator (key mapping, Fn layers,
+The Monka keyboard driver on Linux. The name is a play on Monka, and on the tool you reach for
+when the vendor didn't ship one. Monka ships its configurator (key mapping, Fn layers,
 macros, lighting, profiles) for Windows only. That configurator turns out to be an Electron
 app whose whole interface is a web bundle, talking to a small native helper that does nothing
-but relay USB HID feature reports. MonkaDriver keeps the vendor's interface exactly as it is
+but relay USB HID feature reports. Monkey Wrench keeps the vendor's interface exactly as it is
 and replaces the helper with a Node.js bridge that speaks the keyboard's protocol over Linux
 `hidraw`. The result installs like any other desktop app: an RPM, a launcher entry, an icon,
 a tray icon. It looks and behaves like the Windows driver because it *is* the Windows driver's
@@ -93,7 +94,7 @@ Electron main (main.js)
 - **Security.** The bridge listens on loopback only, refuses any request with a web `Origin`
   (only the `file://` renderer, whose origin is `null`, is accepted), checks the `Host` header, and
   requires a per-launch bearer token that the Electron main process injects into the renderer's
-  requests. Settings are stored under `~/.config/Monka Driver/iot_db`, and paths outside that
+  requests. Settings are stored under `~/.config/Monkey Wrench/iot_db`, and paths outside that
   directory are refused.
 
 ## What was reverse-engineered
@@ -114,12 +115,12 @@ instruction-level evidence. The short version:
 
 ## Install & run
 
-MonkaDriver does not redistribute Monka's interface. You extract it from the official Windows
+Monkey Wrench does not redistribute Monka's interface. You extract it from the official Windows
 driver you download yourself; the script reads the installer, nothing is installed on Windows.
 
 ```sh
-git clone https://github.com/JimmYCHUU/MonkaDriver.git
-cd MonkaDriver
+git clone https://github.com/JimmYCHUU/MonkeyWrench.git
+cd MonkeyWrench
 npm install
 
 # 1. the vendor UI, from the official Windows driver (A75.exe or the .zip that holds it)
@@ -130,11 +131,13 @@ npm run vendor:extract -- ~/Downloads/A75.exe
 npm run dist
 
 # 3. install it like any other package
-sudo dnf install ./release/monka-driver-*.rpm
+sudo dnf install ./release/monkey-wrench-*.rpm
 ```
 
-That gives you `/opt/monka-driver`, `/usr/bin/monka-driver`, "Monka Driver" in the launcher with
-its icon, and a tray icon while it runs. Remove it with `sudo dnf remove monka-driver`.
+That gives you `/opt/monkey-wrench`, `/usr/bin/monkey-wrench`, "Monkey Wrench" in the launcher with
+its icon, and a tray icon while it runs. Remove it with `sudo dnf remove monkey-wrench`. Installing it over the earlier `monka-driver`
+package replaces that package, and your settings from `~/.config/Monka Driver` are copied across
+on the first start.
 
 The keyboard's `hidraw` nodes must be readable and writable by your user. On Fedora with the
 usual `uaccess` rules for vendor `3151` nothing is needed; otherwise add
@@ -153,7 +156,7 @@ npm run start:rw       # writes enabled, same as the installed app
 ```
 
 Some IDE terminals export `ELECTRON_RUN_AS_NODE`, which makes the Electron binary behave like
-plain Node; the scripts clear it. The bridge's log is `~/.config/Monka Driver/logs/bridge.log`
+plain Node; the scripts clear it. The bridge's log is `~/.config/Monkey Wrench/logs/bridge.log`
 and records every frame sent and received.
 
 ## The read-only guard
@@ -223,7 +226,7 @@ Everything in `tools/` is a developer aid and nothing in it is packaged.
 npm test
 ```
 
-79 tests with `node:test`, no hardware needed: protobuf codec against hand-computed wire bytes,
+83 tests with `node:test`, no hardware needed: protobuf codec against hand-computed wire bytes,
 gRPC-web framing in both formats with streaming and trailers, origin/host/token checks, the
 checksum rules (including the worked example the keyboard later echoed), the dongle sequences
 against a scripted dongle, the read-only guard, sysfs enumeration against a fake sysfs tree,
@@ -234,6 +237,7 @@ store, system information, and the XDG autostart entry.
 
 ```
 main.js                 Electron main: window, tray, IPC, bridge lifecycle, token injection
+migrate.js              one-time carry-over of settings and autostart from the former name
 autostart.js            XDG autostart entry (Electron's API is macOS/Windows only)
 bridge/
   main.js               bridge entry point (plain Node; also run by Electron's utilityProcess)

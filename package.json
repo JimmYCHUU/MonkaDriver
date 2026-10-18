@@ -1,8 +1,8 @@
 {
-  "name": "monka-driver",
-  "productName": "Monka Driver",
+  "name": "monkey-wrench",
+  "productName": "Monkey Wrench",
   "version": "2.1.66",
-  "description": "Linux port of the Monka keyboard driver: the vendor UI on a native hidraw bridge",
+  "description": "Monkey Wrench: the Monka keyboard driver on Linux, the vendor UI on a native hidraw bridge",
   "main": "main.js",
   "private": true,
   "license": "MIT",
@@ -30,8 +30,8 @@
     "playwright-core": "^1.52.0"
   },
   "build": {
-    "appId": "tech.rongyuan.monkadriver",
-    "productName": "Monka Driver",
+    "appId": "io.github.jimmychuu.monkeywrench",
+    "productName": "Monkey Wrench",
     "asar": false,
     "npmRebuild": false,
     "directories": {
@@ -40,6 +40,7 @@
     "files": [
       "main.js",
       "autostart.js",
+      "migrate.js",
       "bridge/**/*",
       "dist/**/*",
       "company/**/*",
@@ -61,7 +62,7 @@
       "target": [
         "dir"
       ],
-      "executableName": "monka-driver",
+      "executableName": "monkey-wrench",
       "icon": "packaging/icons",
       "category": "Utility"
     }
@@ -69,6 +70,6 @@
   "author": "JimmYCHUU",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JimmYCHUU/MonkaDriver.git"
+    "url": "https://github.com/JimmYCHUU/MonkeyWrench.git"
   }
 }

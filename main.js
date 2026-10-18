@@ -7,6 +7,7 @@ const fs = require('node:fs');
 const crypto = require('node:crypto');
 const remote = require('@electron/remote/main');
 const { Autostart, resolveExec } = require('./autostart');
+const { migrateFromMonkaDriver } = require('./migrate');
 
 const BASE_W = 1200;
 const BASE_H = 788;
@@ -39,8 +40,8 @@ let bridgeRestarts = 0;
 
 const autostart = new Autostart({
   exec: resolveExec({ packaged: app.isPackaged, execPath: process.execPath, appDir: __dirname }),
-  name: 'Monka Driver',
-  icon: 'monka-driver',
+  name: 'Monkey Wrench',
+  icon: 'monkey-wrench',
 });
 
 function log(...a) { console.log('[main]', ...a); }
@@ -108,7 +109,7 @@ function createWindow() {
     fullscreenable: false,
     show: false,
     icon: path.join(companyDir, 'icon.png'),
-    title: 'Monka Driver',
+    title: 'Monkey Wrench',
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -132,6 +133,8 @@ function createWindow() {
 
   mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
 
+  // the vendor page titles itself "Quantum Mechanical Kit"; keep the app's own name in the task manager
+  mainWindow.on('page-title-updated', (e) => e.preventDefault());
   mainWindow.on('hide', () => mainWindow && mainWindow.webContents.send('hide', true));
   mainWindow.on('show', () => mainWindow && mainWindow.webContents.send('show', true));
   mainWindow.on('closed', () => { mainWindow = null; });
@@ -177,7 +180,7 @@ function addTray() {
   let image = nativeImage.createFromPath(path.join(companyDir, 'APP.png'));
   if (!image.isEmpty()) image = image.resize({ width: 22, height: 22 });
   tray = new Tray(image);
-  tray.setToolTip('Monka Driver');
+  tray.setToolTip('Monkey Wrench');
   tray.on('click', () => { if (mainWindow) mainWindow.show(); });
   tray.setContextMenu(buildTrayMenu());
 }
@@ -201,6 +204,10 @@ ipcMain.on('getScaleFactor', (e) => {
 // ------------------------------------------------------------------- app ----
 app.on('ready', async () => {
   Menu.setApplicationMenu(null);
+  try {
+    const m = migrateFromMonkaDriver({ newUserData: app.getPath('userData'), enableAutostart: () => autostart.setEnabled(true) });
+    if (m.settings !== 'none' || m.autostart !== 'none') log('carried over from Monka Driver:', JSON.stringify(m));
+  } catch (e) { log('migration from Monka Driver failed', e); }
   addTray();
   const ok = await startBridge();
   if (!ok) log('bridge did not start; the UI will keep retrying its connection');

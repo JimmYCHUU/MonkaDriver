@@ -1,6 +1,16 @@
+# dependencies and build output
 node_modules/
 release/
 rpmbuild/
 *.rpm
-.superpowers/
 *.log
+
+# the vendor's UI assets are extracted from the official installer, never committed
+dist/
+company/
+CurrentCompany.json
+iot_driver.exe
+
+# local tooling
+.superpowers/
+.directory

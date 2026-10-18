@@ -10,7 +10,7 @@ function quoteExec(p) {
 
 // Command used by the autostart entry: the system launcher when installed, the
 // packaged binary otherwise, and `electron <appdir>` for runs from source.
-function resolveExec({ launcher = '/usr/bin/monka-driver', launcherExists = fs.existsSync(launcher), packaged, execPath, appDir }) {
+function resolveExec({ launcher = '/usr/bin/monkey-wrench', launcherExists = fs.existsSync(launcher), packaged, execPath, appDir }) {
   if (launcherExists) return launcher;
   if (packaged) return execPath;
   const q = (x) => `"${String(x).replace(/"/g, '\\"')}"`;
@@ -18,7 +18,7 @@ function resolveExec({ launcher = '/usr/bin/monka-driver', launcherExists = fs.e
 }
 
 class Autostart {
-  constructor({ configHome, exec, name = 'Monka Driver', icon = 'monka-driver', id = 'monka-driver' } = {}) {
+  constructor({ configHome, exec, name = 'Monkey Wrench', icon = 'monkey-wrench', id = 'monkey-wrench' } = {}) {
     this.configHome = configHome || process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
     this.exec = exec;
     this.name = name;
