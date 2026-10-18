@@ -22,7 +22,9 @@ app.commandLine.appendSwitch('disable-background-timer-throttling');
 
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
+  // another instance is running and has been asked to show itself
   app.quit();
+  setTimeout(() => app.exit(0), 2000);
 } else {
   app.on('second-instance', () => { if (mainWindow) { mainWindow.show(); mainWindow.focus(); } });
 }
@@ -53,7 +55,8 @@ function startBridge() {
       MONKA_LOG: path.join(app.getPath('logs'), 'bridge.log'),
       MONKA_TOKEN: BRIDGE_TOKEN,
     };
-    if (process.env.MONKA_READ_ONLY === undefined && !app.isPackaged) env.MONKA_READ_ONLY = '1';
+    // development runs never write to the keyboard; the installed app does (the user drives it)
+    if (process.env.MONKA_READ_ONLY === undefined) env.MONKA_READ_ONLY = app.isPackaged ? '0' : '1';
     bridge = utilityProcess.fork(path.join(__dirname, 'bridge', 'main.js'), [], {
       serviceName: 'monka-hid-bridge',
       stdio: 'inherit',

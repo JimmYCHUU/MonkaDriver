@@ -30,6 +30,8 @@ regular desktop application with a launcher entry and tray icon.
 %install
 mkdir -p %{buildroot}%{appdir}
 cp -a %{unpacked}/. %{buildroot}%{appdir}/
+# setuid helper so the Chromium sandbox also works where unprivileged user namespaces are disabled
+chmod 4755 %{buildroot}%{appdir}/chrome-sandbox
 install -Dm755 %{srcdir}/packaging/monka-driver %{buildroot}%{_bindir}/monka-driver
 install -Dm644 %{srcdir}/packaging/monka-driver.desktop %{buildroot}%{_datadir}/applications/monka-driver.desktop
 for s in 16 22 24 32 48 64 128 256 512; do
@@ -44,9 +46,7 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/monka-driver.desktop
 %{_datadir}/applications/monka-driver.desktop
 %{_datadir}/icons/hicolor/*/apps/monka-driver.png
 %dir %{appdir}
-%attr(4755,root,root) %{appdir}/chrome-sandbox
 %{appdir}/*
-%exclude %{appdir}/chrome-sandbox
 
 %changelog
 * Sat Oct 18 2026 jimmysama <marketing@carbarn.com.au> - 2.1.66-1
