@@ -42,6 +42,7 @@ async function createHidManager({
   pollIntervalMs = 2000,
   dongleStatus,
   frameRules,
+  dongleWait, // test hook: replaces the protocol sleeps
 } = {}) {
   if (!hidModule) hidModule = fake ? makeFakeModule() : require('node-hid');
   if (!watcher) watcher = fake ? makeFakeWatcher() : new DeviceWatcher();
@@ -89,7 +90,11 @@ async function createHidManager({
       return;
     }
     if (info.role.kind === 'vender') {
+      // the interface carries other report ids too (NKRO, consumer, mouse); the
+      // renderer only understands the vendor collection's reports
+      const ids = new Set(info.role.reportIds || []);
       m.dev.onInput((buf) => {
+        if (ids.size && !ids.has(buf[0])) return;
         const msg = { msg: Buffer.from(buf) };
         for (const s of venderStreams) { try { s.write(msg); } catch { /* ignore */ } }
       });
@@ -109,10 +114,11 @@ async function createHidManager({
     if (loopLocked || closed) return;
     let changed = false;
     for (const m of [...managed.values()]) {
-      if (m.info.role.kind !== 'support' || !m.dev) continue;
+      // only dongles have a status protocol; wired keyboards are simply "online"
+      if (m.info.role.kind !== 'support' || !m.info.role.dongleCommon || !m.dev) continue;
       if (loopLocked) break;
       try {
-        const st = await m.run(() => pollDongle(m.dev, m.info, { log, rules, state: m.dstate }));
+        const st = await m.run(() => pollDongle(m.dev, m.info, { log, rules, state: m.dstate, wait: dongleWait }));
         if (st && JSON.stringify(st) !== JSON.stringify(m.status)) { m.status = st; changed = true; }
       } catch (e) {
         log(`status poll ${m.path} failed: ${e.message}`);
@@ -151,7 +157,7 @@ async function createHidManager({
   // ------------------------------------------------------------ helpers --
   function need(devicepath) {
     const m = managed.get(devicepath);
-    if (!m || !m.dev) throw new GrpcError(STATUS.NOT_FOUND, `device ${devicepath} not found`);
+    if (!m || !m.dev || m.info.role.kind !== 'support') throw new GrpcError(STATUS.NOT_FOUND, `device ${devicepath} not found`);
     return m;
   }
 
@@ -172,7 +178,7 @@ async function createHidManager({
     await m.run(async () => {
       if (!raw && m.info.role.dongleCommon) {
         const sel = (req.dangledevtype | 0) === 2 ? 1 : 0;
-        await dongleMod.sendToDongle(m.dev, frame, sel, m.dstate);
+        await dongleMod.sendToDongle(m.dev, frame, sel, m.dstate, { wait: dongleWait });
       } else {
         await m.dev.writeFeature(frame);
       }
@@ -182,7 +188,7 @@ async function createHidManager({
 
   async function read(req, raw) {
     const m = need(req.devicepath);
-    const data = await m.run(() => (!raw && m.info.role.dongleCommon ? dongleMod.readFromDongle(m.dev, m.dstate) : m.dev.readFeature()));
+    const data = await m.run(() => (!raw && m.info.role.dongleCommon ? dongleMod.readFromDongle(m.dev, m.dstate, { wait: dongleWait }) : m.dev.readFeature()));
     const msg = rules.parseRead ? rules.parseRead(data, { raw }) : data;
     log(`${raw ? 'readRawFeature' : 'readMsg'} ${m.path} <- ${Buffer.from(msg).toString('hex')}`);
     return { err: '', msg: Buffer.from(msg) };

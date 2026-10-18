@@ -31,9 +31,10 @@ const A75 = [
 ];
 
 test('parses top-level (usagePage, usage) collections from a report descriptor', () => {
-  assert.deepEqual(parseTopLevelCollections(Buffer.from(RD_IF2, 'hex')), [{ usagePage: 0xffff, usage: 2 }]);
+  assert.deepEqual(parseTopLevelCollections(Buffer.from(RD_IF2, 'hex')), [{ usagePage: 0xffff, usage: 2, reportIds: [] }]);
   const if1 = parseTopLevelCollections(Buffer.from(RD_IF1, 'hex'));
-  assert.deepEqual(if1.at(-1), { usagePage: 0xffff, usage: 1 });
+  assert.deepEqual(if1.at(-1), { usagePage: 0xffff, usage: 1, reportIds: [5] });
+  assert.deepEqual(if1[0], { usagePage: 0x0c, usage: 1, reportIds: [3] });
   assert.equal(if1.length, 5);
 });
 
@@ -45,15 +46,15 @@ test('lists hidraw nodes with vid/pid/interface/collections from sysfs', () => {
   assert.equal(if2.vid, 0x3151);
   assert.equal(if2.pid, 0x4011);
   assert.equal(if2.interface, 2);
-  assert.deepEqual(if2.collections, [{ usagePage: 0xffff, usage: 2 }]);
+  assert.deepEqual(if2.collections, [{ usagePage: 0xffff, usage: 2, reportIds: [] }]);
   assert.equal(if2.name, 'ROYUAN 2.4G Wireless Keyboard');
 });
 
 test('classifies the A75 dongle command interface as a dongle_common support device', () => {
   const list = listHidraw(fakeSysfs(A75));
   const roles = Object.fromEntries(list.map((d) => [d.node, classify(d)]));
-  assert.deepEqual(roles['/dev/hidraw2'], { kind: 'support', dongleCommon: true, ble: false, usagePage: 0xffff, usage: 2 });
-  assert.deepEqual(roles['/dev/hidraw1'], { kind: 'vender', usagePage: 0xffff, usage: 1 });
+  assert.deepEqual(roles['/dev/hidraw2'], { kind: 'support', dongleCommon: true, ble: false, usagePage: 0xffff, usage: 2, reportIds: [] });
+  assert.deepEqual(roles['/dev/hidraw1'], { kind: 'vender', usagePage: 0xffff, usage: 1, reportIds: [5] });
   assert.equal(roles['/dev/hidraw0'], undefined);
   assert.equal(roles['/dev/hidraw3'], undefined);
 });

@@ -63,10 +63,10 @@ test('sendToDongle: F7 until online+ready, then F6 select (cached) and the frame
   assert.ok(dev.sent.some((b) => b[1] === 0xf6 && b[2] === 0x05), 'mouse selection byte 0x05');
 });
 
-test('sendToDongle gives up after 15 F7 attempts when the device is offline', async () => {
-  const { fake, dev } = scriptedDongle({ online: false });
+test('sendToDongle retries the ready flag 15 times when the dongle stays busy', async () => {
+  const { fake, dev } = scriptedDongle({ ready: false });
   const hd = await HidDevice.open('/dev/hidraw2', fake);
-  await assert.rejects(dongle.sendToDongle(hd, Buffer.alloc(64), 0, {}, fast), /not online/);
+  await assert.rejects(dongle.sendToDongle(hd, Buffer.alloc(64), 0, {}, fast), /busy|ready/);
   assert.equal(dev.sent.filter((b) => b[1] === 0xf7).length, 15);
   assert.equal(dev.sent.filter((b) => b[1] === 0xf6).length, 0);
 });
@@ -131,4 +131,44 @@ test('pollStatus does not query the device id while the keyboard is asleep (offl
   assert.deepEqual(st, { keyboardId: 0, mouseId: 0, keyboard: { battery: 88, isOnline: false }, mouse: null });
   assert.equal(dev.sent.filter((b) => b[1] === 0x8f).length, 0, 'no 8F while offline');
   assert.equal(dev.sent.filter((b) => b[1] === 0xf7).length, 1, 'a single F7');
+});
+
+test('getDevId rejects a reply that is not an 8F echo so the next poll retries', async () => {
+  const { fake, dev, setPending } = scriptedDongle();
+  const hd = await HidDevice.open('/dev/hidraw2', fake);
+  fake.devices['/dev/hidraw2'].responder = ((orig) => (frame) => (frame[0] === 0x8f ? undefined : orig(frame)))(dev.responder);
+  setPending(Buffer.from([0x00, 0x64, 0x00, 0x00, 0x01, 0x01, 0x01])); // stale F7 buffer
+  assert.equal(await dongle.getDevId(hd, 0, {}, fast), 0);
+  const state = {};
+  const st = await dongle.pollStatus(hd, { role: { dongleCommon: true } }, { state, wait: fast.wait, log: () => {} });
+  assert.equal(st.keyboardId, 0);
+  state.pausedUntil = 0; // the id query pauses polling for 5 s, like the helper's pasue24loop
+  await dongle.pollStatus(hd, { role: { dongleCommon: true } }, { state, wait: fast.wait, log: () => {} });
+  assert.equal(dev.sent.filter((b) => b[1] === 0x8f).length, 3, '8F re-sent on every poll until it is answered');
+});
+
+test('the keyboard id is re-queried after the keyboard slept', async () => {
+  let online = true;
+  const { fake, dev } = scriptedDongle();
+  const hd = await HidDevice.open('/dev/hidraw2', fake);
+  const base = dev.responder;
+  dev.responder = (frame) => { const r = base(frame); if (frame[0] === 0xf7) r[3] = online ? 0 : 1; return r; };
+  const state = {};
+  const ctx = { state, wait: fast.wait, log: () => {} };
+  assert.equal((await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx)).keyboardId, 0x80000790);
+  online = false;
+  state.pausedUntil = 0;
+  const asleep = await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx);
+  assert.equal(asleep.keyboard.isOnline, false);
+  online = true;
+  state.pausedUntil = 0;
+  await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx);
+  assert.equal(dev.sent.filter((b) => b[1] === 0x8f).length, 2, 'id queried again after wake-up');
+});
+
+test('an offline keyboard fails sendToDongle immediately (no 15 retries)', async () => {
+  const { fake, dev } = scriptedDongle({ online: false });
+  const hd = await HidDevice.open('/dev/hidraw2', fake);
+  await assert.rejects(dongle.sendToDongle(hd, Buffer.alloc(64), 0, {}, fast), /not online/);
+  assert.equal(dev.sent.filter((b) => b[1] === 0xf7).length, 1);
 });

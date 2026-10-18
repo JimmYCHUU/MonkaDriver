@@ -6,7 +6,7 @@ const path = require('node:path');
 const fs = require('node:fs');
 const crypto = require('node:crypto');
 const remote = require('@electron/remote/main');
-const { Autostart } = require('./autostart');
+const { Autostart, resolveExec } = require('./autostart');
 
 const BASE_W = 1200;
 const BASE_H = 788;
@@ -38,7 +38,7 @@ let bridge = null;
 let bridgeRestarts = 0;
 
 const autostart = new Autostart({
-  exec: fs.existsSync('/usr/bin/monka-driver') ? '/usr/bin/monka-driver' : process.execPath,
+  exec: resolveExec({ packaged: app.isPackaged, execPath: process.execPath, appDir: __dirname }),
   name: 'Monka Driver',
   icon: 'monka-driver',
 });
@@ -72,9 +72,15 @@ function startBridge() {
       bridge = null;
       if (!settled) { settled = true; resolve(false); }
       if (quitting) return;
+      if (code === 2) { // port in use: another bridge/app instance owns 127.0.0.1:3814; restarting would loop
+        log(`bridge port ${BRIDGE_PORT} is in use by another process; not restarting the bridge`);
+        return;
+      }
       const delay = Math.min(10000, 500 * 2 ** Math.min(bridgeRestarts++, 5));
       setTimeout(() => { if (!quitting) startBridge(); }, delay);
     });
+    // never block the UI forever on a wedged device: the renderer retries on its own
+    setTimeout(() => { if (!settled) { settled = true; log('bridge did not report within 10 s; showing the window anyway'); resolve(false); } }, 10000);
   });
 }
 

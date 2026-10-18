@@ -8,6 +8,15 @@ function quoteExec(p) {
   return /[\s"']/.test(p) ? `"${p.replace(/"/g, '\\"')}"` : p;
 }
 
+// Command used by the autostart entry: the system launcher when installed, the
+// packaged binary otherwise, and `electron <appdir>` for runs from source.
+function resolveExec({ launcher = '/usr/bin/monka-driver', launcherExists = fs.existsSync(launcher), packaged, execPath, appDir }) {
+  if (launcherExists) return launcher;
+  if (packaged) return execPath;
+  const q = (x) => `"${String(x).replace(/"/g, '\\"')}"`;
+  return `${q(execPath)} ${q(appDir)}`;
+}
+
 class Autostart {
   constructor({ configHome, exec, name = 'Monka Driver', icon = 'monka-driver', id = 'monka-driver' } = {}) {
     this.configHome = configHome || process.env.XDG_CONFIG_HOME || path.join(os.homedir(), '.config');
@@ -36,7 +45,7 @@ class Autostart {
       '[Desktop Entry]',
       'Type=Application',
       `Name=${this.name}`,
-      `Exec=${quoteExec(this.exec)} --hidden`,
+      `Exec=${this.exec.startsWith('"') ? this.exec : quoteExec(this.exec)} --hidden`,
       `Icon=${this.icon}`,
       'Terminal=false',
       'X-GNOME-Autostart-enabled=true',
@@ -47,4 +56,4 @@ class Autostart {
   }
 }
 
-module.exports = { Autostart, quoteExec };
+module.exports = { Autostart, quoteExec, resolveExec };

@@ -20,16 +20,20 @@ const NAMES = {
 };
 
 const TRANSPORT_ALLOW = new Set([0xf1, 0xf6, 0xf7, 0xfb, 0xfc, 0xfd, 0xfe]);
+// GET commands known to be pure reads (the vendor's own tables also place a few
+// writes above 0x80, e.g. SET_FLASHCHIPERASE 0xAC in the OLED class, so a range
+// is not safe; anything not listed here is refused).
+const GET_ALLOW = new Set([0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8f,
+  0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97]);
 
 function isReadOnlyFrame(msg) {
   if (!msg || msg.length === 0) return false;
   const cmd = msg[0];
-  if (cmd >= 0x80 && cmd <= 0xbf) return true;
-  return TRANSPORT_ALLOW.has(cmd);
+  return GET_ALLOW.has(cmd) || TRANSPORT_ALLOW.has(cmd);
 }
 
 function describeCommand(cmd) {
   return NAMES[cmd] || `CMD_0x${cmd.toString(16).padStart(2, '0')}`;
 }
 
-module.exports = { isReadOnlyFrame, describeCommand, NAMES };
+module.exports = { isReadOnlyFrame, describeCommand, NAMES, GET_ALLOW, TRANSPORT_ALLOW };

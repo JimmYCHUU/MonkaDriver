@@ -24,19 +24,23 @@ class KvStore {
 
   _file(dbpath) { return `${dbpath}.json`; }
 
-  async _load(dbpath) {
+  _load(dbpath) {
     dbpath = this._check(dbpath);
-    let db = this._dbs.get(dbpath);
-    if (db) return db;
-    db = new Map();
-    try {
-      const entries = JSON.parse(await fsp.readFile(this._file(dbpath), 'utf8'));
-      for (const [k, v] of entries) db.set(k, v);
-    } catch (e) {
-      if (e.code !== 'ENOENT') throw e;
-    }
-    this._dbs.set(dbpath, db);
-    return db;
+    let loading = this._dbs.get(dbpath);
+    if (loading) return loading;
+    // cache the promise so concurrent first accesses share one Map
+    loading = (async () => {
+      const db = new Map();
+      try {
+        const entries = JSON.parse(await fsp.readFile(this._file(dbpath), 'utf8'));
+        for (const [k, v] of entries) db.set(k, v);
+      } catch (e) {
+        if (e.code !== 'ENOENT') { this._dbs.delete(dbpath); throw e; }
+      }
+      return db;
+    })();
+    this._dbs.set(dbpath, loading);
+    return loading;
   }
 
   _save(dbpath, db) {

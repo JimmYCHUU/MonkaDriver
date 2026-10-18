@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { Autostart } = require('../autostart');
+const { Autostart, resolveExec } = require('../autostart');
 
 test('enabling writes an XDG autostart entry that launches hidden; disabling removes it', () => {
   const configHome = fs.mkdtempSync(path.join(os.tmpdir(), 'monka-xdg-'));
@@ -30,4 +30,10 @@ test('exec paths with spaces are quoted', () => {
   a.setEnabled(true);
   const text = fs.readFileSync(path.join(configHome, 'autostart', 'monka-driver.desktop'), 'utf8');
   assert.match(text, /^Exec="\/opt\/Monka Driver\/monka-driver" --hidden$/m);
+});
+
+test('resolveExec uses the system launcher when installed, else electron + app dir for dev runs', () => {
+  assert.equal(resolveExec({ launcher: '/usr/bin/monka-driver', launcherExists: true, packaged: true, execPath: '/opt/monka-driver/monka-driver', appDir: '/opt/monka-driver/resources/app' }), '/usr/bin/monka-driver');
+  assert.equal(resolveExec({ launcher: '/usr/bin/monka-driver', launcherExists: false, packaged: true, execPath: '/opt/x/monka-driver', appDir: '/opt/x/resources/app' }), '/opt/x/monka-driver');
+  assert.equal(resolveExec({ launcher: '/usr/bin/monka-driver', launcherExists: false, packaged: false, execPath: '/p/node_modules/electron/dist/electron', appDir: '/p' }), '"/p/node_modules/electron/dist/electron" "/p"');
 });

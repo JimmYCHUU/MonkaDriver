@@ -27,10 +27,13 @@ function parseTopLevelCollections(desc) {
     for (let k = 0; k < size; k++) value |= desc[i + 1 + k] << (8 * k);
     value >>>= 0;
     if (type === 1 && tag === 0x0) usagePage = value;
-    else if (type === 2 && tag === 0x0) pendingUsage = size === 4 ? value & 0xffff : value;
+    else if (type === 1 && tag === 0x8) { // report id (global): belongs to the enclosing top-level collection
+      const cur = out[out.length - 1];
+      if (depth > 0 && cur && !cur.reportIds.includes(value)) cur.reportIds.push(value);
+    } else if (type === 2 && tag === 0x0) pendingUsage = size === 4 ? value & 0xffff : value;
     else if (type === 0) {
       if (tag === 0xa) { // collection
-        if (depth === 0) out.push({ usagePage, usage: pendingUsage === undefined ? 0 : pendingUsage });
+        if (depth === 0) out.push({ usagePage, usage: pendingUsage === undefined ? 0 : pendingUsage, reportIds: [] });
         depth++;
       } else if (tag === 0xc) depth--;
       pendingUsage = undefined;
@@ -91,13 +94,13 @@ function matches(entry, dev, col) {
 function classify(dev, table = TABLE) {
   for (const col of dev.collections) {
     for (const e of table.support || []) {
-      if (matches(e, dev, col)) return { kind: 'support', dongleCommon: Boolean(e.dongle_common), ble: Boolean(e.ble), usagePage: col.usagePage, usage: col.usage };
+      if (matches(e, dev, col)) return { kind: 'support', dongleCommon: Boolean(e.dongle_common), ble: Boolean(e.ble), usagePage: col.usagePage, usage: col.usage, reportIds: [...col.reportIds] };
     }
     for (const e of table.boot || []) {
-      if (matches(e, dev, col)) return { kind: 'boot', usagePage: col.usagePage, usage: col.usage };
+      if (matches(e, dev, col)) return { kind: 'boot', usagePage: col.usagePage, usage: col.usage, reportIds: [...col.reportIds] };
     }
     for (const e of table.vender || []) {
-      if (matches(e, dev, col)) return { kind: 'vender', usagePage: col.usagePage, usage: col.usage };
+      if (matches(e, dev, col)) return { kind: 'vender', usagePage: col.usagePage, usage: col.usage, reportIds: [...col.reportIds] };
     }
   }
   return undefined;

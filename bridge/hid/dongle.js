@@ -41,20 +41,18 @@ async function f7Status(dev, { wait = sleep } = {}) {
   return st;
 }
 
+// The helper fails immediately when neither paired device is online and only
+// retries (15 × 100 ms) for the dongle's "ready" flag.
 async function waitOnline(dev, { wait = sleep, needReady = true } = {}) {
-  let last = null;
   for (let i = 0; i < ONLINE_TRIES; i++) {
     const st = await f7Status(dev, { wait });
-    last = st;
-    if (st) {
-      const online = (st.keyboard && st.keyboard.online) || (st.mouse && st.mouse.online);
-      const ready = (st.keyboard && st.keyboard.ready) || (st.mouse && st.mouse.ready);
-      if (online && (!needReady || ready)) return st;
-    }
+    const online = st && ((st.keyboard && st.keyboard.online) || (st.mouse && st.mouse.online));
+    if (!online) throw new Error('dev is not online');
+    const ready = (st.keyboard && st.keyboard.ready) || (st.mouse && st.mouse.ready);
+    if (!needReady || ready) return st;
     await wait(RETRY_MS);
   }
-  const online = last && ((last.keyboard && last.keyboard.online) || (last.mouse && last.mouse.online));
-  throw new Error(online ? 'dongle busy: F7 ready flag never set' : 'dev is not online');
+  throw new Error('dongle busy: F7 ready flag never set');
 }
 
 async function f6Select(dev, sel, state, { wait = sleep } = {}) {
@@ -93,7 +91,7 @@ async function getDevId(dev, sel, state, { wait = sleep } = {}) {
   await sendToDongle(dev, build([0x8f], CHECKSUM.BIT7), sel, state, { wait });
   await wait(10);
   const r = await readFromDongle(dev, state, { wait });
-  if (!r || r.length < 5) return 0;
+  if (!r || r.length < 5 || r[0] !== 0x8f) return 0; // not an 8F echo: the device did not answer (retry next poll)
   return ((r[1] | (r[2] << 8) | (r[3] << 16) | ((r[4] | 0x80) << 24)) >>> 0);
 }
 
@@ -102,7 +100,9 @@ async function pollStatus(dev, info, { state, wait = sleep, log = () => {} } = {
   if (state.pausedUntil && Date.now() < state.pausedUntil) return state.last === undefined ? null : state.last;
   const st = await f7Status(dev, { wait });
   if (!st) { state.last = null; return null; }
-  // ids can only be read while the device is awake (the helper fetches them when a device appears online)
+  // ids are (re)queried whenever a device comes online, like the helper does
+  if (st.keyboard && !st.keyboard.online) state.keyboardId = 0;
+  if (st.mouse && !st.mouse.online) state.mouseId = 0;
   if (st.keyboard && st.keyboard.online && !state.keyboardId) {
     try { state.keyboardId = await getDevId(dev, 0, state, { wait }); log(`dongle ${dev.path}: keyboard id 0x${state.keyboardId.toString(16)}`); } catch (e) { log(`keyboard id query failed: ${e.message}`); }
   }

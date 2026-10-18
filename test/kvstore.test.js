@@ -55,3 +55,13 @@ test('a store with a root refuses dbpaths outside it', async () => {
   await assert.rejects(kv.get('/etc/passwd', Buffer.from('k')), /outside/);
   await assert.rejects(kv.keys(path.join(root, 'iot_db', '..', '..', 'x')), /outside/);
 });
+
+test('concurrent first accesses share one database (no lost writes)', async () => {
+  const kv = new KvStore();
+  const dbpath = path.join(tmpdir(), 'iot_db', 'CONFIG');
+  await Promise.all([kv.insert(dbpath, Buffer.from('k'), Buffer.from('v')), kv.keys(dbpath), kv.get(dbpath, Buffer.from('k'))]);
+  assert.equal((await kv.get(dbpath, Buffer.from('k'))).toString(), 'v');
+  await kv.insert(dbpath, Buffer.from('k2'), Buffer.from('v2'));
+  const kv2 = new KvStore();
+  assert.deepEqual((await kv2.keys(dbpath)).map(String), ['k', 'k2']);
+});

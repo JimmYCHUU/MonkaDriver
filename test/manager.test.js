@@ -9,7 +9,7 @@ const { FakeHidModule } = require('../bridge/hid/fake');
 const { GrpcError } = require('../bridge/grpcweb');
 
 const A75_CMD = { node: '/dev/hidraw2', vid: 0x3151, pid: 0x4011, name: 'ROYUAN 2.4G Wireless Keyboard', interface: 2, collections: [{ usagePage: 0xffff, usage: 2 }], role: { kind: 'support', dongleCommon: true, ble: false, usagePage: 0xffff, usage: 2 } };
-const A75_VENDER = { node: '/dev/hidraw1', vid: 0x3151, pid: 0x4011, name: 'ROYUAN 2.4G Wireless Keyboard', interface: 1, collections: [{ usagePage: 0xffff, usage: 1 }], role: { kind: 'vender', usagePage: 0xffff, usage: 1 } };
+const A75_VENDER = { node: '/dev/hidraw1', vid: 0x3151, pid: 0x4011, name: 'ROYUAN 2.4G Wireless Keyboard', interface: 1, collections: [{ usagePage: 0xffff, usage: 1, reportIds: [5] }], role: { kind: 'vender', usagePage: 0xffff, usage: 1, reportIds: [5] } };
 
 class StubWatcher extends EventEmitter {
   constructor(devices) { super(); this.devicesList = devices; this.started = false; }
@@ -149,5 +149,73 @@ test('feature traffic and polling are serialized: no poll runs in the middle of 
   await mgr.sendReadFeature({ devicepath: '/dev/hidraw2', msg: Buffer.from([0x80]), checksumtype: 0 }, async () => { events.push('io'); await new Promise((r) => setTimeout(r, 12)); events.push('io-done'); });
   const i = events.indexOf('io');
   assert.equal(events[i + 1], 'io-done');
+  await mgr.close();
+});
+
+const WIRED = { node: '/dev/hidraw4', vid: 0x3151, pid: 0x4010, name: 'wired', interface: 2, collections: [{ usagePage: 0xffff, usage: 2, reportIds: [] }], role: { kind: 'support', dongleCommon: false, ble: false, usagePage: 0xffff, usage: 2, reportIds: [] } };
+
+test('watchVender forwards only reports with the vendor collection report id', async () => {
+  const { mgr, vender } = await setup();
+  const s = fakeStream();
+  await mgr.watchVender(s);
+  await new Promise((r) => setTimeout(r, 15));
+  vender.emitInput(Buffer.from([1, 0x80, 0, 0, 0, 0, 0, 0])); // NKRO report (id 1): "d" pressed
+  vender.emitInput(Buffer.from([6, 1, 0, 0])); // mouse report (id 6)
+  vender.emitInput(Buffer.from([5, 15, 1, 0])); // vendor event (id 5)
+  await new Promise((r) => setTimeout(r, 5));
+  assert.deepEqual(s.written.map((w) => Buffer.from(w.msg).toString('hex')), ['050f0100']);
+  s.close();
+  await mgr.close();
+});
+
+test('plain USB support devices are never polled with dongle frames', async () => {
+  const hidModule = new FakeHidModule();
+  const wired = hidModule.addDevice('/dev/hidraw4');
+  const mgr = await createHidManager({ readOnly: true, hidModule, watcher: new StubWatcher([WIRED]), log: () => {}, pollIntervalMs: 5 });
+  await new Promise((r) => setTimeout(r, 30));
+  assert.equal(wired.sent.length, 0, 'no F7/F6/FE/FC/8F sent to a wired keyboard');
+  const s = fakeStream();
+  await mgr.watchDevList(s);
+  assert.deepEqual(s.written[0].devlist[0].dev.path, '/dev/hidraw4');
+  assert.equal(s.written[0].devlist[0].dev.isonline, true);
+  await mgr.close();
+});
+
+test('sendMsg/readMsg to a dongle keyboard run the F7/F6 and F7/FC sequences; raw calls do not', async () => {
+  const hidModule = new FakeHidModule();
+  const cmd = hidModule.addDevice('/dev/hidraw2');
+  const { createFakeResponder } = require('../bridge/hid/dongle');
+  cmd.responder = createFakeResponder();
+  const mgr = await createHidManager({ readOnly: true, hidModule, watcher: new StubWatcher([A75_CMD]), log: () => {}, pollIntervalMs: 100000, dongleWait: async () => {} });
+  await new Promise((r) => setTimeout(r, 20));
+  assert.ok(cmd.sent.some((b) => b[1] === 0xf6 && b[2] === 0x0a), 'keyboard selected (F6 0A) during the initial id query');
+  cmd.sent.length = 0;
+  await mgr.sendMsg({ devicepath: '/dev/hidraw2', msg: Buffer.from([0x83]), checksumtype: 0, dangledevtype: 1 });
+  const rd = await mgr.readMsg({ devicepath: '/dev/hidraw2' });
+  const seq = cmd.sent.map((b) => b[1]);
+  assert.equal(seq[0], 0xf7, 'status check before sending');
+  assert.deepEqual(seq.filter((c) => c !== 0xf7), [0x83, 0xfc], 'the frame (selection cached), then the FC read prelude');
+  await mgr.sendMsg({ devicepath: '/dev/hidraw2', msg: Buffer.from([0x83]), checksumtype: 0, dangledevtype: 2 });
+  assert.ok(cmd.sent.some((b) => b[1] === 0xf6 && b[2] === 0x05), 'switching to the mouse re-selects');
+  assert.equal(rd.msg[0], 0x83);
+  assert.equal(rd.msg[1], 88);
+  cmd.sent.length = 0;
+  await mgr.sendRawFeature({ devicepath: '/dev/hidraw2', msg: Buffer.from([0x80]), checksumtype: 0 });
+  await mgr.readRawFeature({ devicepath: '/dev/hidraw2' });
+  assert.deepEqual(cmd.sent.map((b) => b[1]), [0x80], 'raw: no dongle housekeeping');
+  await mgr.close();
+});
+
+test('user traffic through the dongle pauses status polling for a while', async () => {
+  const hidModule = new FakeHidModule();
+  const cmd = hidModule.addDevice('/dev/hidraw2');
+  const { createFakeResponder } = require('../bridge/hid/dongle');
+  cmd.responder = createFakeResponder();
+  const mgr = await createHidManager({ readOnly: true, hidModule, watcher: new StubWatcher([A75_CMD]), log: () => {}, pollIntervalMs: 5, dongleWait: async () => {} });
+  await new Promise((r) => setTimeout(r, 30));
+  await mgr.sendMsg({ devicepath: '/dev/hidraw2', msg: Buffer.from([0x83]), checksumtype: 0, dangledevtype: 1 });
+  cmd.sent.length = 0;
+  await new Promise((r) => setTimeout(r, 40));
+  assert.equal(cmd.sent.filter((b) => b[1] === 0xf7).length, 0, 'no status polls right after user traffic');
   await mgr.close();
 });
