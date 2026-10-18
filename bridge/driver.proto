@@ -1,0 +1,120 @@
+// Reconstructed from the vendor renderer's generated google-protobuf code
+// (field numbers, names and types as the Windows/mac helper "iot_driver" uses them).
+syntax = "proto3";
+package driver;
+
+enum DangleDevType { DANGLEDEVTYPENONE = 0; KEYBOARD = 1; MOUSE = 2; }
+enum CheckSumType { BIT7 = 0; BIT8 = 1; NONE = 2; }
+enum DeviceListChangeType { INIT = 0; ADD = 1; REMOVE = 2; CHANGE = 3; }
+enum DeviceType { YZWKEYBOARD = 0; YZWBOOT = 1; YZWVENDER = 2; }
+enum LightType { MUSIC2 = 0; SCREEN = 1; OTHER = 2; }
+
+message Empty {}
+
+message Device {
+  DeviceType devtype = 1;
+  bool is24 = 2;
+  string path = 3;
+  int32 id = 4;
+  uint32 battery = 5;
+  bool isonline = 6;
+  uint32 vid = 7;
+  uint32 pid = 8;
+}
+
+message Status24 { uint32 battery = 1; bool is_online = 2; }
+
+message DangleStatus {
+  oneof dangledev { Empty empty = 1; Status24 status = 2; }
+}
+
+message DangleCommon {
+  DangleStatus keyboard = 1;
+  DangleStatus mouse = 2;
+  string path = 3;
+  uint32 keyboard_id = 5;
+  uint32 mouse_id = 6;
+  uint32 vid = 7;
+  uint32 pid = 8;
+}
+
+message DJDev {
+  oneof onedev { Device dev = 1; DangleCommon danglecommondev = 2; }
+}
+
+message DeviceList {
+  repeated DJDev devlist = 1;
+  DeviceListChangeType type = 2;
+}
+
+message SendMsg {
+  string devicepath = 1;
+  bytes msg = 2;
+  CheckSumType checksumtype = 3;
+  DangleDevType dangledevtype = 4;
+}
+message ReadMsg { string devicepath = 1; }
+message ResSend { string err = 1; }
+message ResRead { string err = 1; bytes msg = 2; }
+message VenderMsg { bytes msg = 1; }
+
+message SetLight {
+  string devicepath = 1;
+  LightType lighttype = 2;
+  uint32 screen_id = 3;
+  DangleDevType dangledevtype = 4;
+}
+
+message WirelessLoopStatus { bool lock = 1; }
+
+message OTAUpgrade { string devpath = 1; bytes file_buf = 2; }
+message Progress { float progress = 1; string err = 2; }
+
+message MuteMicrophone { bool need_mute = 1; }
+message MicrophoneMuteStatus { bool is_mute = 1; string err = 2; }
+
+message InsertDb { string dbpath = 1; bytes key = 2; bytes value = 3; }
+message DeleteItem { string dbpath = 1; bytes key = 2; }
+message GetItem { string dbpath = 1; bytes key = 2; }
+message Item { bytes value = 1; string err_str = 2; }
+message GetAll { string dbpath = 1; }
+message AllList { repeated bytes data = 1; string err_str = 2; }
+
+message Version { string baseversion = 1; string timestamp = 2; }
+message WeatherReq { string language = 1; string address = 2; }
+message WeatherRes { string res = 1; }
+
+message SystemInfo {
+  uint64 disk_space_total = 1;
+  uint64 disk_spce_available = 2;
+  uint64 net_work_total_up = 3;
+  uint64 net_work_total_down = 4;
+  float cpu_temperater = 5;
+  uint64 mem_total = 6;
+  uint64 mem_used = 7;
+  float cpu_usage = 8;
+}
+
+service DriverGrpc {
+  rpc watchDevList (Empty) returns (stream DeviceList);
+  rpc watchVender (Empty) returns (stream VenderMsg);
+  rpc watchSystemInfo (Empty) returns (stream SystemInfo);
+  rpc sendMsg (SendMsg) returns (ResSend);
+  rpc readMsg (ReadMsg) returns (ResRead);
+  rpc sendRawFeature (SendMsg) returns (ResSend);
+  rpc readRawFeature (ReadMsg) returns (ResRead);
+  rpc setLightType (SetLight) returns (Empty);
+  rpc upgradeOTAGATT (OTAUpgrade) returns (stream Progress);
+  rpc muteMicrophone (MuteMicrophone) returns (ResSend);
+  rpc toggleMicrophoneMute (Empty) returns (ResSend);
+  rpc getMicrophoneMute (Empty) returns (MicrophoneMuteStatus);
+  rpc changeWirelessLoopStatus (WirelessLoopStatus) returns (Empty);
+  rpc insertDb (InsertDb) returns (ResSend);
+  rpc deleteItemFromDb (DeleteItem) returns (ResSend);
+  rpc getItemFromDb (GetItem) returns (Item);
+  rpc getAllKeysFromDb (GetAll) returns (AllList);
+  rpc getAllValuesFromDb (GetAll) returns (AllList);
+  rpc cleanDev (ReadMsg) returns (ResSend);
+  rpc getVersion (Empty) returns (Version);
+  rpc getWeather (WeatherReq) returns (WeatherRes);
+}

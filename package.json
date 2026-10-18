@@ -10,7 +10,7 @@
     "start": "MONKA_READ_ONLY=1 electron .",
     "start:rw": "electron .",
     "bridge": "node bridge/main.js",
-    "test": "node --test test/",
+    "test": "node --test \"test/**/*.test.js\"",
     "pack": "electron-builder --linux dir",
     "dist": "npm run pack && packaging/build-rpm.sh"
   },

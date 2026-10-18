@@ -1,0 +1,2070 @@
+{
+"support": [
+{
+"vid": 111,
+"pid": 64784,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 1121,
+"pid": 16386,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 1121,
+"pid": 16387,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 1130,
+"pid": 301,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 1130,
+"pid": 303,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 1130,
+"pid": 321,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 1452,
+"pid": 591,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 1671,
+"pid": 301,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 1848,
+"pid": 2578,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 1848,
+"pid": 48145,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 4479,
+"pid": 16386,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 4479,
+"pid": 16387,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 5215,
+"pid": 886,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 5215,
+"pid": 886,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 5215,
+"pid": 889,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 9639,
+"pid": 8961,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 9639,
+"pid": 8962,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 9639,
+"pid": 8963,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 9639,
+"pid": 9248,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 9639,
+"pid": 9250,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 9642,
+"pid": 8197,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 9642,
+"pid": 8198,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 9642,
+"pid": 8199,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 9642,
+"pid": 8200,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 9642,
+"pid": 16389,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 9642,
+"pid": 16390,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 9642,
+"pid": 16391,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 9642,
+"pid": 16392,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 9642,
+"pid": 32770,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 1
+},
+{
+"vid": 10007,
+"pid": 34737,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 11944,
+"pid": 8484,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16386,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 12625,
+"pid": 16387,
+"usage": 6,
+"usage_page": 1,
+"interface_number": 0
+},
+{
+"vid": 12625,
+"pid": 16391,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16392,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16395,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16400,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16401,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 16402,
+"usage": 514,
+"usage_page": 65382,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 16403,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 16404,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 16405,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16407,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 16408,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16411,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16412,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 16413,
+"usage": 514,
+"usage_page": 65382,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 16414,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16415,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 16416,
+"usage": 514,
+"usage_page": 65382,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 16417,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 16418,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16419,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 16420,
+"usage": 514,
+"usage_page": 65382,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 16422,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16423,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 16424,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 16426,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16428,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 16429,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 16431,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16437,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 16439,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 16440,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 16442,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 0
+},
+{
+"vid": 12625,
+"pid": 16444,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20482,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20484,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 20486,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20487,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20488,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20489,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20490,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20512,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20513,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20517,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20518,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20519,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 20521,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20523,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20524,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20525,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20526,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20527,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20528,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20529,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20530,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20531,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20533,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20535,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20536,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20538,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2
+},
+{
+"vid": 12625,
+"pid": 20540,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 20541,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20543,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20544,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20545,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20546,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20547,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2
+},
+{
+"vid": 12625,
+"pid": 20549,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20555,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20556,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2
+},
+{
+"vid": 12625,
+"pid": 20558,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20559,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20560,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20561,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 12625,
+"pid": 20562,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20564,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 12625,
+"pid": 20565,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 12625,
+"pid": 20566,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2
+},
+{
+"vid": 12639,
+"pid": 20527,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13082,
+"pid": 20515,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58327,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58328,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58329,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58330,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58331,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58332,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58333,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58334,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58335,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58336,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13357,
+"pid": 58337,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13357,
+"pid": 58338,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13357,
+"pid": 58339,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 13357,
+"pid": 58340,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 13357,
+"pid": 58341,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 13357,
+"pid": 58342,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13357,
+"pid": 58343,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13357,
+"pid": 58344,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13357,
+"pid": 58348,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58349,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58350,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58351,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58352,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58353,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58354,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58355,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58356,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13357,
+"pid": 58357,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13357,
+"pid": 58358,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13357,
+"pid": 58359,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13357,
+"pid": 58360,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 13357,
+"pid": 58361,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 13357,
+"pid": 58362,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 13357,
+"pid": 58363,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13357,
+"pid": 58364,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13357,
+"pid": 58365,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13434,
+"pid": 41729,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13434,
+"pid": 41730,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13434,
+"pid": 41731,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 13434,
+"pid": 41732,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 13434,
+"pid": 41733,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 13434,
+"pid": 41734,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41476,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41477,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41478,
+"usage": 514,
+"usage_page": 65382,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41479,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41491,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41494,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41495,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41496,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41497,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41504,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41505,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41506,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41507,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41508,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41509,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41510,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41511,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41512,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41513,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41520,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41521,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41522,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41523,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41524,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41525,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41526,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41527,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41528,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41538,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41552,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2
+},
+{
+"vid": 14154,
+"pid": 41553,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41554,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41568,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41569,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41570,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41571,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41572,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14154,
+"pid": 41744,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2
+},
+{
+"vid": 14154,
+"pid": 41745,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41746,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41747,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2
+},
+{
+"vid": 14154,
+"pid": 41748,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41749,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41752,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2
+},
+{
+"vid": 14154,
+"pid": 41753,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41760,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14154,
+"pid": 41761,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2
+},
+{
+"vid": 14154,
+"pid": 41762,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"libusb_index": 2,
+"dongle_common": true
+},
+{
+"vid": 14154,
+"pid": 41763,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14228,
+"pid": 45840,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45841,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45842,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45843,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45845,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45847,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45849,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45850,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45851,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45872,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45873,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45874,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45875,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45877,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45879,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45881,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45882,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14228,
+"pid": 45883,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14234,
+"pid": 6147,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14234,
+"pid": 6148,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14234,
+"pid": 6149,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14234,
+"pid": 6150,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14234,
+"pid": 6151,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14234,
+"pid": 6152,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14505,
+"pid": 0,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14505,
+"pid": 1,
+"usage": 514,
+"usage_page": 65365,
+"interface_number": -1,
+"ble": true
+},
+{
+"vid": 14505,
+"pid": 2,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14505,
+"pid": 6,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14574,
+"pid": 0,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2,
+"dongle_common": true
+},
+{
+"vid": 14574,
+"pid": 1,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14574,
+"pid": 9,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+},
+{
+"vid": 14574,
+"pid": 10,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": 2
+}
+],
+"boot": [
+{
+"vid": 1121,
+"pid": 16385,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 1121,
+"pid": 16385,
+"usage": 6,
+"usage_page": 1,
+"interface_number": -1
+},
+{
+"vid": 1130,
+"pid": 302,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 1130,
+"pid": 304,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 3141,
+"pid": 28736,
+"usage": 1,
+"usage_page": 12,
+"interface_number": -1
+},
+{
+"vid": 9639,
+"pid": 8960,
+"usage": 1,
+"usage_page": 12,
+"interface_number": -1
+},
+{
+"vid": 9642,
+"pid": 8201,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 9642,
+"pid": 8202,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 9642,
+"pid": 8203,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 9642,
+"pid": 8204,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 9642,
+"pid": 16393,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 9642,
+"pid": 16394,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 9642,
+"pid": 16395,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 9642,
+"pid": 16396,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 9642,
+"pid": 32771,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16385,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16394,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16397,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16406,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16409,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16410,
+"usage": 2,
+"usage_page": 65535,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16421,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16425,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16427,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16430,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16438,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16441,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 16443,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20481,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20516,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20520,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20522,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20534,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20537,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20539,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20542,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20548,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20550,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20557,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+},
+{
+"vid": 12625,
+"pid": 20567,
+"usage": 1,
+"usage_page": 65281,
+"interface_number": -1
+}
+],
+"vender": [
+{
+"usage": 1,
+"usage_page": 65535,
+"interface_number": 1
+},
+{
+"vid": 12625,
+"pid": 16407,
+"usage": 1,
+"usage_page": 65534,
+"interface_number": 1
+}
+]
+}
