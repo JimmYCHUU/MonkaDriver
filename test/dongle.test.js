@@ -123,3 +123,12 @@ test('the fake responder emulates an A75 dongle for MONKA_FAKE_HID runs', () => 
   const id = resp(Buffer.from([0xfc]));
   assert.deepEqual([...id.subarray(0, 5)], [0x8f, 0x90, 0x07, 0, 0]);
 });
+
+test('pollStatus does not query the device id while the keyboard is asleep (offline)', async () => {
+  const { fake, dev } = scriptedDongle({ online: false });
+  const hd = await HidDevice.open('/dev/hidraw2', fake);
+  const st = await dongle.pollStatus(hd, { role: { dongleCommon: true } }, { state: {}, wait: fast.wait, log: () => {} });
+  assert.deepEqual(st, { keyboardId: 0, mouseId: 0, keyboard: { battery: 88, isOnline: false }, mouse: null });
+  assert.equal(dev.sent.filter((b) => b[1] === 0x8f).length, 0, 'no 8F while offline');
+  assert.equal(dev.sent.filter((b) => b[1] === 0xf7).length, 1, 'a single F7');
+});

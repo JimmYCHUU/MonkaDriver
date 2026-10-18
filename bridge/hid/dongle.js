@@ -102,10 +102,11 @@ async function pollStatus(dev, info, { state, wait = sleep, log = () => {} } = {
   if (state.pausedUntil && Date.now() < state.pausedUntil) return state.last === undefined ? null : state.last;
   const st = await f7Status(dev, { wait });
   if (!st) { state.last = null; return null; }
-  if (st.keyboard && !state.keyboardId) {
+  // ids can only be read while the device is awake (the helper fetches them when a device appears online)
+  if (st.keyboard && st.keyboard.online && !state.keyboardId) {
     try { state.keyboardId = await getDevId(dev, 0, state, { wait }); log(`dongle ${dev.path}: keyboard id 0x${state.keyboardId.toString(16)}`); } catch (e) { log(`keyboard id query failed: ${e.message}`); }
   }
-  if (st.mouse && !state.mouseId) {
+  if (st.mouse && st.mouse.online && !state.mouseId) {
     try { state.mouseId = await getDevId(dev, 1, state, { wait }); log(`dongle ${dev.path}: mouse id 0x${state.mouseId.toString(16)}`); } catch (e) { log(`mouse id query failed: ${e.message}`); }
   }
   const result = {
