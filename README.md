@@ -58,7 +58,9 @@ one changing settings in the UI). Override at any time with the environment vari
   no-op re-apply, exactly like the Windows driver.
 * Read-only probes for the dongle live in `tools/` (`hidprobe.js` status only,
   `wakewait.js` waits for the keyboard to wake and does one GET round trip,
-  `probe.js` talks to a running bridge over gRPC-web).
+  `probe.js` talks to a running bridge over gRPC-web). `tools/restore-lights.js` is the
+  one tool that WRITES: it re-applies the lighting parameters the keyboard already
+  reports (what the UI does at start-up); run it only on purpose.
 
 ## Notes
 
