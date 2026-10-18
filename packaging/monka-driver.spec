@@ -49,5 +49,5 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/monka-driver.desktop
 %{appdir}/*
 
 %changelog
-* Sat Oct 18 2026 jimmysama <marketing@carbarn.com.au> - 2.1.66-1
+* Sun Oct 18 2026 jimmysama <marketing@carbarn.com.au> - 2.1.66-1
 - Linux port of Monka Driver 2.1.66
