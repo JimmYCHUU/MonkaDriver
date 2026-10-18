@@ -12,11 +12,11 @@ test('SET-style commands (< 0x80) are rejected in read-only mode', () => {
 });
 
 test('dongle transport and identity queries are allowed', () => {
-  for (const cmd of [0xf1, 0xf6, 0xf7, 0xfb, 0xfd, 0xfe]) assert.equal(isReadOnlyFrame(Buffer.from([cmd])), true, cmd.toString(16));
+  for (const cmd of [0xf1, 0xf6, 0xf7, 0xfb, 0xfc, 0xfd, 0xfe]) assert.equal(isReadOnlyFrame(Buffer.from([cmd])), true, cmd.toString(16));
 });
 
 test('unknown high commands and empty frames are rejected', () => {
-  for (const cmd of [0xc0, 0xe0, 0xf0, 0xf2, 0xff]) assert.equal(isReadOnlyFrame(Buffer.from([cmd])), false, cmd.toString(16));
+  for (const cmd of [0xc0, 0xe0, 0xf0, 0xf2, 0xf8, 0xff]) assert.equal(isReadOnlyFrame(Buffer.from([cmd])), false, cmd.toString(16));
   assert.equal(isReadOnlyFrame(Buffer.alloc(0)), false);
 });
 

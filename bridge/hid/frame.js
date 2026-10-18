@@ -1,12 +1,11 @@
 'use strict';
 // Feature-report frame rules, recovered from the helper's
 // DJDevice::send_feature (docs/protocol-re.md, Q1):
-//   * the message is zero-padded to 64 bytes (the helper pads to 66 and sends
-//     the first 64; byte 0 is the command byte);
+//   * the message is zero-padded to 64 bytes (byte 0 is the command byte);
 //   * BIT7 / BIT8 add one checksum byte = bitwise NOT of the 8-bit wrapping sum
-//     over a window; the window depends on the device kind:
-//       normal/vender device: BIT7 → buf[8] = ~sum(buf[1..7]); BIT8 → buf[9] = ~sum(buf[1..8])
-//       boot device:          BIT7 → buf[7] = ~sum(buf[0..6]); BIT8 → buf[8] = ~sum(buf[0..7])
+//     over a window:
+//       USB devices: BIT7 → buf[7] = ~Σ buf[0..6];  BIT8 → buf[8] = ~Σ buf[0..7]
+//       BLE devices: BIT7 → buf[8] = ~Σ buf[1..8];  BIT8 → buf[9] = ~Σ buf[1..9]
 //   * NONE leaves the frame untouched.
 // The Linux hidraw transport prepends the report-id byte (0) itself.
 const CHECKSUM = { BIT7: 0, BIT8: 1, NONE: 2 };
@@ -24,18 +23,17 @@ function notSum(buf, from, to) {
   return (~s) & 0xff;
 }
 
-function build(msg, checksumType = CHECKSUM.NONE, { devType = 'normal' } = {}) {
+function build(msg, checksumType = CHECKSUM.NONE, { ble = false } = {}) {
   const f = pad(msg);
   if (checksumType === CHECKSUM.NONE) return f;
-  const boot = devType === 'boot';
   if (checksumType === CHECKSUM.BIT7) {
-    if (boot) f[7] = notSum(f, 0, 6);
-    else f[8] = notSum(f, 1, 7);
+    if (ble) f[8] = notSum(f, 1, 8);
+    else f[7] = notSum(f, 0, 6);
     return f;
   }
   if (checksumType === CHECKSUM.BIT8) {
-    if (boot) f[8] = notSum(f, 0, 7);
-    else f[9] = notSum(f, 1, 8);
+    if (ble) f[9] = notSum(f, 1, 9);
+    else f[8] = notSum(f, 0, 7);
     return f;
   }
   throw new Error(`unknown checksum type ${checksumType}`);

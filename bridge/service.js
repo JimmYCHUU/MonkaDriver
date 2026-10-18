@@ -42,11 +42,16 @@ function createService({ userData, exec = defaultExec, hid = null, readOnly = tr
 
     watchSystemInfo: async (req, stream) => {
       let timer = null;
+      let closed = false;
       const tick = async () => {
-        if (!stream.open) return;
-        try { stream.write(await sampler.sample()); } catch (e) { log('sysinfo sample failed', e); }
+        if (closed || !stream.open) return;
+        try {
+          const sample = await sampler.sample();
+          if (!closed) stream.write(sample);
+        } catch (e) { log('sysinfo sample failed', e); }
       };
       stream.onClose(() => {
+        closed = true;
         if (timer) clearInterval(timer);
         timer = null;
         if (stream.end) stream.end();

@@ -14,10 +14,10 @@ const NAMES = {
   0x12: 'SET_SLEEPTIME', 0x92: 'GET_SLEEPTIME', 0x13: 'SET_KEYMATRIX_SIMPLE', 0x93: 'GET_KEYMATRIX_SIMPLE',
   0x14: 'SET_USERPIC_SIMPLE', 0x94: 'GET_USERPIC_SIMPLE', 0x15: 'SET_FN_SIMPLE', 0x95: 'GET_FN_SIMPLE',
   0xf1: 'QUERY_ID', 0xf6: 'DONGLE_SET_DEVICE', 0xf7: 'DONGLE_CHECK_STATUS', 0xfb: 'DONGLE_FB_STATUS',
-  0xfd: 'DONGLE_FD_IS24', 0xfe: 'DONGLE_NEXT_PACK_LENGTH',
+  0xfc: 'DONGLE_READ_PRELUDE', 0xfd: 'DONGLE_FD_IS24', 0xfe: 'DONGLE_NEXT_PACK_LENGTH',
 };
 
-const TRANSPORT_ALLOW = new Set([0xf1, 0xf6, 0xf7, 0xfb, 0xfd, 0xfe]);
+const TRANSPORT_ALLOW = new Set([0xf1, 0xf6, 0xf7, 0xfb, 0xfc, 0xfd, 0xfe]);
 
 function isReadOnlyFrame(msg) {
   if (!msg || msg.length === 0) return false;

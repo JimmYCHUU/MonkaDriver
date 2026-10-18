@@ -16,6 +16,7 @@ class Managed {
     this.path = info.node;
     this.dev = null; // HidDevice
     this.status = null; // dongle status: { keyboardId, mouseId, keyboard, mouse }
+    this.dstate = {}; // dongle protocol state: lastSel, keyboardId, mouseId, pausedUntil
     this.queue = Promise.resolve();
   }
   // serialize feature traffic and polling per device
@@ -111,7 +112,7 @@ async function createHidManager({
       if (m.info.role.kind !== 'support' || !m.dev) continue;
       if (loopLocked) break;
       try {
-        const st = await m.run(() => pollDongle(m.dev, m.info, { log, rules }));
+        const st = await m.run(() => pollDongle(m.dev, m.info, { log, rules, state: m.dstate }));
         if (st && JSON.stringify(st) !== JSON.stringify(m.status)) { m.status = st; changed = true; }
       } catch (e) {
         log(`status poll ${m.path} failed: ${e.message}`);
@@ -166,18 +167,22 @@ async function createHidManager({
     const m = need(req.devicepath);
     const msg = Buffer.from(req.msg || []);
     guard(msg);
-    const frame = rules.build(msg, req.checksumtype | 0, { raw, dangledevtype: req.dangledevtype | 0, dongle: m.info.role.dongleCommon });
+    const frame = rules.build(msg, req.checksumtype | 0, { ble: Boolean(m.info.role.ble) });
     log(`${raw ? 'sendRawFeature' : 'sendMsg'} ${m.path} ${describeCommand(msg[0])} cs=${req.checksumtype | 0} dt=${req.dangledevtype | 0} -> ${frame.toString('hex')}`);
     await m.run(async () => {
-      if (!raw && m.info.role.dongleCommon && rules.beforeSend) await rules.beforeSend(m.dev, frame, req, { log });
-      await m.dev.writeFeature(frame);
+      if (!raw && m.info.role.dongleCommon) {
+        const sel = (req.dangledevtype | 0) === 2 ? 1 : 0;
+        await dongleMod.sendToDongle(m.dev, frame, sel, m.dstate);
+      } else {
+        await m.dev.writeFeature(frame);
+      }
     });
     return { err: '' };
   }
 
   async function read(req, raw) {
     const m = need(req.devicepath);
-    const data = await m.run(() => m.dev.readFeature());
+    const data = await m.run(() => (!raw && m.info.role.dongleCommon ? dongleMod.readFromDongle(m.dev, m.dstate) : m.dev.readFeature()));
     const msg = rules.parseRead ? rules.parseRead(data, { raw }) : data;
     log(`${raw ? 'readRawFeature' : 'readMsg'} ${m.path} <- ${Buffer.from(msg).toString('hex')}`);
     return { err: '', msg: Buffer.from(msg) };
