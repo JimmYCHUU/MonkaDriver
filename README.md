@@ -47,6 +47,19 @@ one changing settings in the UI). Override at any time with the environment vari
 (or `~/.cache/monka-driver/bridge.log` when the bridge runs standalone with
 `node bridge/main.js`).
 
+## Behaviour worth knowing
+
+* The keyboard sleeps when idle; the dongle then reports it offline and the UI shows
+  "Search Device..." until a key is pressed (same as on Windows).
+* On start-up the vendor UI reads the whole configuration (firmware revision, lighting,
+  key matrix, Fn layers, debounce, sleep time) and then writes the lighting parameters
+  it has just read back to the keyboard (SET_LEDPARAM with identical bytes). In
+  read-only mode that single write is refused and logged; in the installed app it is a
+  no-op re-apply, exactly like the Windows driver.
+* Read-only probes for the dongle live in `tools/` (`hidprobe.js` status only,
+  `wakewait.js` waits for the keyboard to wake and does one GET round trip,
+  `probe.js` talks to a running bridge over gRPC-web).
+
 ## Notes
 
 * Only the bundled renderer (a `file://` page) may talk to the bridge: requests from
