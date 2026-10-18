@@ -15,6 +15,7 @@ const userData = env.MONKA_USERDATA || path.join(os.homedir(), '.config', 'monka
 const readOnly = !(env.MONKA_READ_ONLY === '0' || env.MONKA_READ_ONLY === 'false' || argv.includes('--rw'));
 const fake = env.MONKA_FAKE_HID === '1' || argv.includes('--fake-hid');
 const logFile = env.MONKA_LOG || path.join(os.homedir(), '.cache', 'monka-driver', 'bridge.log');
+const token = env.MONKA_TOKEN || undefined;
 
 try { fs.mkdirSync(path.dirname(logFile), { recursive: true }); } catch { /* ignore */ }
 function log(...args) {
@@ -37,7 +38,7 @@ async function main() {
     log('HID manager unavailable:', e.message);
   }
   const service = createService({ userData, hid, readOnly, log });
-  const server = createGrpcWebServer({ proto, handlers: service.handlers, log });
+  const server = createGrpcWebServer({ proto, handlers: service.handlers, log, token });
   try {
     await server.listen(PORT, '127.0.0.1');
   } catch (e) {
@@ -45,7 +46,7 @@ async function main() {
     notifyParent({ type: 'error', message: e.message });
     process.exit(2);
   }
-  log(`bridge listening on 127.0.0.1:${server.port} readOnly=${readOnly} fakeHid=${fake} userData=${userData}`);
+  log(`bridge listening on 127.0.0.1:${server.port} readOnly=${readOnly} fakeHid=${fake} auth=${token ? 'token' : 'none'} userData=${userData}`);
   process.stdout.write(`listening ${server.port}\n`);
   notifyParent({ type: 'listening', port: server.port, readOnly, fake });
 

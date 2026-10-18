@@ -2,6 +2,7 @@
 // Minimal gRPC-web server (HTTP/1.1) compatible with the grpc-web JS client the
 // vendor renderer uses in "text" mode (base64 frames) and with binary mode.
 const http = require('node:http');
+const crypto = require('node:crypto');
 
 class GrpcError extends Error {
   constructor(code, message) {
@@ -65,7 +66,17 @@ function hostAllowed(host) {
   return h === '127.0.0.1' || h === 'localhost' || h === '[::1]' || h === '';
 }
 
-function createGrpcWebServer({ proto, handlers, log = () => {} }) {
+function tokenMatches(header, token) {
+  const m = /^Bearer\s+(.+)$/.exec(String(header || ''));
+  if (!m) return false;
+  const a = Buffer.from(m[1]);
+  const b = Buffer.from(token);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+// `token`: per-launch secret; when set, every non-preflight request must carry
+// `Authorization: Bearer <token>` (Electron injects it into the renderer's requests).
+function createGrpcWebServer({ proto, handlers, log = () => {}, token } = {}) {
   const server = http.createServer((req, res) => {
     handle(req, res).catch((e) => {
       log('grpcweb: unexpected error', e);
@@ -85,6 +96,12 @@ function createGrpcWebServer({ proto, handlers, log = () => {} }) {
     const cors = origin === undefined ? CORS_HEADERS : { ...CORS_HEADERS, 'access-control-allow-origin': origin };
     if (req.method === 'OPTIONS') {
       res.writeHead(204, cors);
+      res.end();
+      return;
+    }
+    if (token && !tokenMatches(req.headers.authorization, token)) {
+      log('grpcweb: refused request without a valid bridge token');
+      res.writeHead(401, cors);
       res.end();
       return;
     }
@@ -191,4 +208,4 @@ function createGrpcWebServer({ proto, handlers, log = () => {} }) {
   };
 }
 
-module.exports = { createGrpcWebServer, GrpcError, STATUS, frame, parseFrames, trailer, originAllowed, hostAllowed };
+module.exports = { createGrpcWebServer, GrpcError, STATUS, frame, parseFrames, trailer, originAllowed, hostAllowed, tokenMatches };

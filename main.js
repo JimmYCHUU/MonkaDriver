@@ -4,6 +4,7 @@
 const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, screen, session, utilityProcess } = require('electron');
 const path = require('node:path');
 const fs = require('node:fs');
+const crypto = require('node:crypto');
 const remote = require('@electron/remote/main');
 const { Autostart } = require('./autostart');
 
@@ -13,6 +14,8 @@ const COMPANY = require('./CurrentCompany.json').currentCompany;
 const companyDir = path.join(__dirname, 'company', `company_${COMPANY}`);
 const BRIDGE_PORT = Number(process.env.MONKA_PORT || 3814);
 const startHidden = process.argv.includes('--hidden');
+// per-launch secret shared with the bridge; injected into the renderer's requests
+const BRIDGE_TOKEN = crypto.randomBytes(24).toString('hex');
 
 app.commandLine.appendSwitch('ozone-platform-hint', 'auto');
 app.commandLine.appendSwitch('disable-background-timer-throttling');
@@ -48,6 +51,7 @@ function startBridge() {
       MONKA_USERDATA: app.getPath('userData'),
       MONKA_PORT: String(BRIDGE_PORT),
       MONKA_LOG: path.join(app.getPath('logs'), 'bridge.log'),
+      MONKA_TOKEN: BRIDGE_TOKEN,
     };
     if (process.env.MONKA_READ_ONLY === undefined && !app.isPackaged) env.MONKA_READ_ONLY = '1';
     bridge = utilityProcess.fork(path.join(__dirname, 'bridge', 'main.js'), [], {
@@ -103,6 +107,11 @@ function createWindow() {
     },
   });
   remote.enable(mainWindow.webContents);
+
+  // authenticate the renderer's bridge calls
+  session.defaultSession.webRequest.onBeforeSendHeaders({ urls: [`http://127.0.0.1:${BRIDGE_PORT}/*`] }, (details, cb) => {
+    cb({ requestHeaders: { ...details.requestHeaders, Authorization: `Bearer ${BRIDGE_TOKEN}` } });
+  });
 
   if (!app.isPackaged) {
     // Development: keep the vendor bundle from reaching its update/analytics

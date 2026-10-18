@@ -219,3 +219,18 @@ test('requests with a foreign Host header are refused (DNS rebinding)', async (t
   });
   assert.equal(status, 403);
 });
+
+test('when a token is configured every call must carry it as a bearer header', async (t) => {
+  const server = createGrpcWebServer({ proto, handlers: { getVersion: async () => ({ baseversion: '1', timestamp: '0' }) }, token: 'secret-123' });
+  await server.listen(0, '127.0.0.1');
+  t.after(() => server.close());
+  const base = `http://127.0.0.1:${server.port}`;
+  const call = (headers) => fetch(`${base}/driver.DriverGrpc/getVersion`, {
+    method: 'POST', headers: { 'content-type': 'application/grpc-web+proto', ...headers }, body: frame(0, Buffer.alloc(0)),
+  });
+  assert.equal((await call({})).status, 401);
+  assert.equal((await call({ authorization: 'Bearer nope' })).status, 401);
+  assert.equal((await call({ authorization: 'Bearer secret-123' })).status, 200);
+  const pre = await fetch(`${base}/driver.DriverGrpc/getVersion`, { method: 'OPTIONS', headers: { origin: 'null', 'access-control-request-method': 'POST' } });
+  assert.equal(pre.status, 204, 'preflight needs no token');
+});
