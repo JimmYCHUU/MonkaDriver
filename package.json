@@ -7,8 +7,9 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
-    "start": "MONKA_READ_ONLY=1 electron .",
-    "start:rw": "electron .",
+    "start": "env -u ELECTRON_RUN_AS_NODE MONKA_READ_ONLY=1 electron .",
+    "start:fake": "env -u ELECTRON_RUN_AS_NODE MONKA_READ_ONLY=1 MONKA_FAKE_HID=1 electron .",
+    "start:rw": "env -u ELECTRON_RUN_AS_NODE MONKA_READ_ONLY=0 electron .",
     "bridge": "node bridge/main.js",
     "test": "node --test \"test/**/*.test.js\"",
     "pack": "electron-builder --linux dir",
