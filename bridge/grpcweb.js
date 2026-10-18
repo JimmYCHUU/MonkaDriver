@@ -54,24 +54,43 @@ function readBody(req) {
   });
 }
 
+// Only the bundled renderer (a file:// page → Origin "null") and non-browser
+// clients (no Origin) may talk to the bridge; web pages are refused so a
+// malicious site cannot drive the keyboard through the local port.
+function originAllowed(origin) {
+  return origin === undefined || origin === 'null' || origin.startsWith('file://');
+}
+function hostAllowed(host) {
+  const h = String(host || '').replace(/:\d+$/, '');
+  return h === '127.0.0.1' || h === 'localhost' || h === '[::1]' || h === '';
+}
+
 function createGrpcWebServer({ proto, handlers, log = () => {} }) {
   const server = http.createServer((req, res) => {
     handle(req, res).catch((e) => {
       log('grpcweb: unexpected error', e);
-      if (!res.headersSent) res.writeHead(500, CORS_HEADERS);
+      if (!res.headersSent) res.writeHead(500);
       res.end();
     });
   });
 
   async function handle(req, res) {
+    const origin = req.headers.origin;
+    if (!originAllowed(origin) || !hostAllowed(req.headers.host)) {
+      log(`grpcweb: refused request from origin=${origin} host=${req.headers.host}`);
+      res.writeHead(403);
+      res.end();
+      return;
+    }
+    const cors = origin === undefined ? CORS_HEADERS : { ...CORS_HEADERS, 'access-control-allow-origin': origin };
     if (req.method === 'OPTIONS') {
-      res.writeHead(204, CORS_HEADERS);
+      res.writeHead(204, cors);
       res.end();
       return;
     }
     const m = /^\/driver\.DriverGrpc\/(\w+)$/.exec(req.url || '');
     if (req.method !== 'POST' || !m) {
-      res.writeHead(404, CORS_HEADERS);
+      res.writeHead(404, cors);
       res.end();
       return;
     }
@@ -80,7 +99,7 @@ function createGrpcWebServer({ proto, handlers, log = () => {} }) {
     const text = ctype.includes('grpc-web-text');
     const encodeOut = (buf) => (text ? Buffer.from(buf.toString('base64')) : buf);
     const headers = {
-      ...CORS_HEADERS,
+      ...cors,
       'content-type': text ? 'application/grpc-web-text+proto' : 'application/grpc-web+proto',
       'cache-control': 'no-cache',
     };
@@ -172,4 +191,4 @@ function createGrpcWebServer({ proto, handlers, log = () => {} }) {
   };
 }
 
-module.exports = { createGrpcWebServer, GrpcError, STATUS, frame, parseFrames, trailer };
+module.exports = { createGrpcWebServer, GrpcError, STATUS, frame, parseFrames, trailer, originAllowed, hostAllowed };

@@ -6,14 +6,26 @@ const fsp = require('node:fs/promises');
 const path = require('node:path');
 
 class KvStore {
-  constructor() {
+  // `root`: when given, every dbpath must resolve inside it (the renderer passes
+  // absolute paths under Electron's userData directory).
+  constructor({ root } = {}) {
+    this.root = root ? path.resolve(root) : undefined;
     this._dbs = new Map(); // dbpath -> Map(keyBase64 -> valueBase64)
     this._writing = new Map(); // dbpath -> Promise chain
+  }
+
+  _check(dbpath) {
+    const r = path.resolve(String(dbpath));
+    if (this.root && r !== this.root && !r.startsWith(this.root + path.sep)) {
+      throw new Error(`dbpath ${dbpath} is outside the storage root`);
+    }
+    return r;
   }
 
   _file(dbpath) { return `${dbpath}.json`; }
 
   async _load(dbpath) {
+    dbpath = this._check(dbpath);
     let db = this._dbs.get(dbpath);
     if (db) return db;
     db = new Map();
@@ -41,6 +53,7 @@ class KvStore {
   }
 
   async insert(dbpath, key, value) {
+    dbpath = this._check(dbpath);
     const db = await this._load(dbpath);
     db.set(Buffer.from(key).toString('base64'), Buffer.from(value).toString('base64'));
     await this._save(dbpath, db);
@@ -53,6 +66,7 @@ class KvStore {
   }
 
   async delete(dbpath, key) {
+    dbpath = this._check(dbpath);
     const db = await this._load(dbpath);
     const existed = db.delete(Buffer.from(key).toString('base64'));
     if (existed) await this._save(dbpath, db);

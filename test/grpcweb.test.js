@@ -126,7 +126,7 @@ test('CORS preflight allows the headers the grpc-web client sends', async (t) =>
     },
   });
   assert.equal(res.status, 204);
-  assert.equal(res.headers.get('access-control-allow-origin'), '*');
+  assert.equal(res.headers.get('access-control-allow-origin'), 'null');
   const allowed = res.headers.get('access-control-allow-headers').toLowerCase();
   for (const h of ['content-type', 'x-grpc-web', 'x-user-agent', 'grpc-timeout']) assert.ok(allowed.includes(h), h);
   assert.ok(res.headers.get('access-control-expose-headers').toLowerCase().includes('grpc-status'));
@@ -191,4 +191,31 @@ test('stream handlers are told when the client goes away', async (t) => {
   await reader.read().catch(() => {});
   await new Promise((r) => setTimeout(r, 50));
   assert.equal(closed, true);
+});
+
+test('requests from a web origin are refused; file:// (Origin: null) and no Origin are accepted', async (t) => {
+  const { server, base } = await startServer({ getVersion: async () => ({ baseversion: '1', timestamp: '0' }) });
+  t.after(() => server.close());
+  const call = (headers) => fetch(`${base}/driver.DriverGrpc/getVersion`, {
+    method: 'POST', headers: { 'content-type': 'application/grpc-web+proto', ...headers }, body: frame(0, Buffer.alloc(0)),
+  });
+  assert.equal((await call({ origin: 'https://evil.example' })).status, 403);
+  assert.equal((await call({ origin: 'null' })).status, 200);
+  assert.equal((await call({})).status, 200);
+  const pre = await fetch(`${base}/driver.DriverGrpc/getVersion`, { method: 'OPTIONS', headers: { origin: 'https://evil.example', 'access-control-request-method': 'POST' } });
+  assert.equal(pre.status, 403);
+});
+
+test('requests with a foreign Host header are refused (DNS rebinding)', async (t) => {
+  const { server, base } = await startServer({ getVersion: async () => ({ baseversion: '1', timestamp: '0' }) });
+  t.after(() => server.close());
+  const http = require('node:http');
+  const status = await new Promise((resolve, reject) => {
+    const req = http.request(`${base}/driver.DriverGrpc/getVersion`, {
+      method: 'POST', headers: { 'content-type': 'application/grpc-web+proto', host: 'evil.example' },
+    }, (res) => { res.resume(); resolve(res.statusCode); });
+    req.on('error', reject);
+    req.end(frame(0, Buffer.alloc(0)));
+  });
+  assert.equal(status, 403);
 });

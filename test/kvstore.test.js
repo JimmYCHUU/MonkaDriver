@@ -46,3 +46,12 @@ test('overwriting a key keeps a single entry', async () => {
   await kv.insert(dbpath, Buffer.from('k'), Buffer.from('2'));
   assert.deepEqual((await kv.values(dbpath)).map(String), ['2']);
 });
+
+test('a store with a root refuses dbpaths outside it', async () => {
+  const root = tmpdir();
+  const kv = new KvStore({ root });
+  await kv.insert(path.join(root, 'iot_db', 'ok'), Buffer.from('k'), Buffer.from('v'));
+  await assert.rejects(kv.insert(path.join(root, '..', 'escape'), Buffer.from('k'), Buffer.from('v')), /outside/);
+  await assert.rejects(kv.get('/etc/passwd', Buffer.from('k')), /outside/);
+  await assert.rejects(kv.keys(path.join(root, 'iot_db', '..', '..', 'x')), /outside/);
+});
