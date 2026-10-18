@@ -1,0 +1,61 @@
+{
+  "name": "monka-driver",
+  "productName": "Monka Driver",
+  "version": "2.1.66",
+  "description": "Monka keyboard driver (Linux port of the vendor's Windows configurator)",
+  "main": "main.js",
+  "private": true,
+  "license": "UNLICENSED",
+  "scripts": {
+    "start": "MONKA_READ_ONLY=1 electron .",
+    "start:rw": "electron .",
+    "bridge": "node bridge/main.js",
+    "test": "node --test test/",
+    "pack": "electron-builder --linux dir",
+    "dist": "npm run pack && packaging/build-rpm.sh"
+  },
+  "dependencies": {
+    "@electron/remote": "2.1.3",
+    "node-hid": "3.4.0",
+    "protobufjs": "^7.5.0"
+  },
+  "devDependencies": {
+    "electron": "44.9.0",
+    "electron-builder": "26.17.0",
+    "grpc-web": "^1.5.0",
+    "google-protobuf": "^3.21.4"
+  },
+  "build": {
+    "appId": "tech.rongyuan.monkadriver",
+    "productName": "Monka Driver",
+    "asar": false,
+    "npmRebuild": false,
+    "directories": { "output": "release" },
+    "files": [
+      "main.js",
+      "autostart.js",
+      "bridge/**/*",
+      "dist/**/*",
+      "company/**/*",
+      "CurrentCompany.json",
+      "iot_driver.exe",
+      "package.json",
+      "node_modules/**/*",
+      "!node_modules/.bin",
+      "!node_modules/electron{,/**/*}",
+      "!node_modules/electron-builder{,/**/*}",
+      "!node_modules/grpc-web{,/**/*}",
+      "!node_modules/google-protobuf{,/**/*}",
+      "!test/**/*",
+      "!docs/**/*",
+      "!packaging/**/*",
+      "!release/**/*"
+    ],
+    "linux": {
+      "target": ["dir"],
+      "executableName": "monka-driver",
+      "icon": "packaging/icons",
+      "category": "Utility"
+    }
+  }
+}
