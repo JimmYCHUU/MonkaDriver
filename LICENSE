@@ -1,0 +1,10 @@
+Copyright (c) 2026 JimmYCHUU. All rights reserved.
+
+MonkaDriver is published on GitHub so that it can be read, studied and referred to. No licence
+is granted: the code and the documentation may not be copied, modified, redistributed or used,
+in whole or in part, without written permission from the copyright holder.
+
+The Monka name belongs to the business it refers to. The keyboard's user interface (the files
+that `scripts/extract-vendor.sh` places in `dist/`, `company/` and `CurrentCompany.json`) is the
+property of Monka and of Rongyuan (容圆); it is not part of this repository and is extracted on
+your own machine from the official Windows driver you downloaded yourself.

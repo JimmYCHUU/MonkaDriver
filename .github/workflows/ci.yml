@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    name: Tests (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24]
+    env:
+      # the Electron binary is not needed to run the bridge tests
+      ELECTRON_SKIP_BINARY_DOWNLOAD: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+
+  packaging:
+    name: Packaging files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends desktop-file-utils rpm
+      - run: desktop-file-validate packaging/monka-driver.desktop
+      - run: rpmspec -P packaging/monka-driver.spec > /dev/null
+        env:
+          MONKA_UNPACKED: /tmp/unpacked
+          MONKA_SRC: ${{ github.workspace }}
+      - run: sh -n packaging/build-rpm.sh scripts/extract-vendor.sh packaging/monka-driver
