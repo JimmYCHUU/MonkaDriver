@@ -1,0 +1,6 @@
+#!/bin/sh
+# Launcher for Monka Driver (installed to /usr/bin by the RPM).
+# ELECTRON_RUN_AS_NODE is cleared because some terminals/IDEs export it, which
+# would make the Electron binary behave like plain Node.
+unset ELECTRON_RUN_AS_NODE
+exec /opt/monka-driver/monka-driver "$@"
