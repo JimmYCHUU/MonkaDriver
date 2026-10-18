@@ -62,6 +62,20 @@ one changing settings in the UI). Override at any time with the environment vari
   one tool that WRITES: it re-applies the lighting parameters the keyboard already
   reports (what the UI does at start-up); run it only on purpose.
 
+## Verification done on 2026-10-18 (Monka A75, 2.4 GHz dongle)
+
+* Read path: the UI loads the complete configuration (40 GET frames) exactly like
+  the Windows app.
+* Write path, authorized by the owner and reverted afterwards: a direct
+  `SET_LEDPARAM` (brightness one step, BIT8 checksum) was accepted and restored;
+  through the real UI the Brightness slider was moved and moved back
+  (two `SET_LEDPARAM` frames), and F12 was remapped to Play/Pause and reset
+  (two `SET_KEYMATRIX_SIMPLE` frames). A full re-read of all 45 configuration
+  frames was byte-identical to the baseline (`docs/verification/`).
+* Tools used: `tools/snapshot.js` (GET-only snapshot + `--diff`),
+  `tools/write-test-light.js`, `tools/ui-test.js` (drives the Electron window over
+  the DevTools protocol; start the app with `--remote-debugging-port=9333`).
+
 ## Notes
 
 * Only the bundled renderer (a `file://` page) may talk to the bridge: requests from
