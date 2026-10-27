@@ -194,8 +194,11 @@ PingFang fonts and Chromium falls back to its standard font on both systems.
 ## Behaviour worth knowing
 
 - The battery percentage is shown next to Monka's battery icon in the top bar, in the same cyan
-  as its fill bar, with a ⚡ in front while the keyboard is charging. On cable power the keyboard
-  reports 100% whatever its real charge (a keyboard at 30% read 100% the moment its cable went in).
+  as its fill bar, with a ⚡ in front while the keyboard is charging. The charging state comes from
+  the keyboard's own battery reply (byte 2: 0 on battery, 1 charging, 2 full on power), which
+  Monkey Wrench asks for every few seconds through the dongle; Monka's interface never asks.
+  On power the level the keyboard reports jumps straight to 100% (30% read 100% the moment
+  its cable went in).
   Monka draws the icon only for wireless keyboards, so on the cable Monkey Wrench draws one at the
   same spot.
 - Plugged into the computer by USB-C, the keyboard switches to wired mode and appears as a separate

@@ -7,7 +7,7 @@ const { FakeHidModule } = require('../bridge/hid/fake');
 const dongle = require('../bridge/hid/dongle');
 
 // scripted dongle: keyboard paired, battery 88, online, ready; answers 8F with the A75 id
-function scriptedDongle({ online = true, ready = true, battery = 88, mouse = false } = {}) {
+function scriptedDongle({ online = true, ready = true, battery = 88, mouse = false, power = 0 } = {}) {
   const fake = new FakeHidModule();
   const dev = fake.addDevice('/dev/hidraw2');
   let pending = Buffer.alloc(64); // reply of the paired device, exposed after FC
@@ -21,7 +21,7 @@ function scriptedDongle({ online = true, ready = true, battery = 88, mouse = fal
       case 0xf6: case 0xfe: return undefined; // housekeeping, no reply
       case 0xfc: return pending;
       case 0x8f: pending = Buffer.from([0x8f, 0x90, 0x07, 0x00, 0x00]); return undefined;
-      case 0x83: pending = Buffer.from([0x83, battery]); return undefined;
+      case 0x83: pending = Buffer.from([0x83, battery, typeof power === 'function' ? power() : power]); return undefined;
       default: pending = Buffer.from([frame[0]]); return undefined; // echo
     }
   };
@@ -100,7 +100,7 @@ test('pollStatus reports battery/online and resolves the keyboard id once', asyn
   const hd = await HidDevice.open('/dev/hidraw2', fake);
   const state = {};
   const st = await dongle.pollStatus(hd, { role: { dongleCommon: true } }, { state, wait: fast.wait, log: () => {} });
-  assert.deepEqual(st, { keyboardId: 0x80000790, mouseId: 0, keyboard: { battery: 77, isOnline: true, charging: true }, mouse: null });
+  assert.deepEqual(st, { keyboardId: 0x80000790, mouseId: 0, keyboard: { battery: 77, isOnline: true, charging: false }, mouse: null });
   const n8f = () => dev.sent.filter((b) => b[1] === 0x8f).length;
   assert.equal(n8f(), 1);
   await dongle.pollStatus(hd, { role: { dongleCommon: true } }, { state, wait: fast.wait, log: () => {} });
@@ -128,7 +128,7 @@ test('pollStatus does not query the device id while the keyboard is asleep (offl
   const { fake, dev } = scriptedDongle({ online: false });
   const hd = await HidDevice.open('/dev/hidraw2', fake);
   const st = await dongle.pollStatus(hd, { role: { dongleCommon: true } }, { state: {}, wait: fast.wait, log: () => {} });
-  assert.deepEqual(st, { keyboardId: 0, mouseId: 0, keyboard: { battery: 88, isOnline: false, charging: true }, mouse: null });
+  assert.deepEqual(st, { keyboardId: 0, mouseId: 0, keyboard: { battery: 88, isOnline: false, charging: false }, mouse: null });
   assert.equal(dev.sent.filter((b) => b[1] === 0x8f).length, 0, 'no 8F while offline');
   assert.equal(dev.sent.filter((b) => b[1] === 0xf7).length, 1, 'a single F7');
 });
@@ -173,15 +173,31 @@ test('an offline keyboard fails sendToDongle immediately (no 15 retries)', async
   assert.equal(dev.sent.filter((b) => b[1] === 0xf7).length, 1);
 });
 
-test('pollStatus reports charging from status byte 0 (cable connected)', async () => {
-  const { fake, dev } = scriptedDongle({ battery: 30 });
+test('charging comes from byte 2 of the keyboard\'s GET_BATTERY reply, not the status byte (verified on the A75)', async () => {
+  // 2026-10-27: unplugged at 23:27 -> 83 64 00; plugged in at 23:29 -> 83 64 01; long on the charger -> 83 64 02.
+  // The F7 status byte 0 pulses with typing and says nothing about power.
+  let power = 1;
+  const { fake, dev } = scriptedDongle({ battery: 100, power: () => power });
   const hd = await HidDevice.open('/dev/hidraw2', fake);
   const base = dev.responder;
-  let cable = 1;
-  dev.responder = (frame) => { const r = base(frame); if (frame[0] === 0xf7) r[0] = cable; return r; };
+  dev.responder = (frame) => { const r = base(frame); if (frame[0] === 0xf7) r[0] = 0; return r; };
   const state = {};
-  const ctx = { state, wait: fast.wait, log: () => {} };
-  assert.deepEqual((await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx)).keyboard, { battery: 30, isOnline: true, charging: true });
-  cable = 0; state.pausedUntil = 0;
-  assert.deepEqual((await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx)).keyboard, { battery: 30, isOnline: true, charging: false });
+  const ctx = { state, wait: fast.wait, log: () => {}, batteryEveryMs: 0 };
+  assert.equal((await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx)).keyboard.charging, true, 'byte 2 = 1: charging');
+  power = 2;
+  assert.equal((await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx)).keyboard.charging, true, 'byte 2 = 2: on the charger, full');
+  power = 0;
+  dev.responder = (frame) => { const r = base(frame); if (frame[0] === 0xf7) r[0] = 1; return r; }; // a typing pulse
+  assert.equal((await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx)).keyboard.charging, false, 'byte 2 = 0: on battery');
+});
+
+test('the battery query runs at most once per interval, never while asleep, and does not pause status polling', async () => {
+  const { fake, dev } = scriptedDongle({ battery: 50, power: 0 });
+  const hd = await HidDevice.open('/dev/hidraw2', fake);
+  const state = {};
+  const ctx = { state, wait: fast.wait, log: () => {}, batteryEveryMs: 60000 };
+  await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx);
+  await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx);
+  assert.equal(dev.sent.filter((b) => b[1] === 0x83).length, 1, 'once within the interval');
+  assert.equal(dev.sent.filter((b) => b[1] === 0xf7).length > 4, true, 'status still polled on the second call');
 });

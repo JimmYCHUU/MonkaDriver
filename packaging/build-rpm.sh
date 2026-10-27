@@ -2,7 +2,7 @@
 # Build the RPM from the electron-builder "dir" output using Fedora's rpmbuild
 # inside Docker (the host has neither rpmbuild nor password-less sudo).
 #   npm run pack          -> release/linux-unpacked/
-#   packaging/build-rpm.sh -> release/monkey-wrench-<ver>-2.fc44.x86_64.rpm
+#   packaging/build-rpm.sh -> release/monkey-wrench-<ver>-<release>.fc44.x86_64.rpm
 set -eu
 cd "$(dirname "$0")/.."
 ROOT="$PWD"

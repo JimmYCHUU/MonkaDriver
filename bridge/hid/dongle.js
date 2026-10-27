@@ -68,8 +68,10 @@ async function feNextLen(dev, len, { wait = sleep } = {}) {
 }
 
 // Send a (checksummed) 64-byte frame to the device paired with the dongle.
-async function sendToDongle(dev, frame, sel, state, { wait = sleep } = {}) {
-  state.pausedUntil = Date.now() + 5000;
+// `pause`: user traffic pauses the status polling for 5 s (a poll must not land between a
+// command and its reply); the bridge's own queries run inside a poll and do not pause it.
+async function sendToDongle(dev, frame, sel, state, { wait = sleep, pause = true } = {}) {
+  if (pause) state.pausedUntil = Date.now() + 5000;
   await waitOnline(dev, { wait });
   await wait(1);
   await f6Select(dev, sel, state, { wait });
@@ -77,8 +79,8 @@ async function sendToDongle(dev, frame, sel, state, { wait = sleep } = {}) {
 }
 
 // Read the reply of the previously sent command through the dongle.
-async function readFromDongle(dev, state, { wait = sleep } = {}) {
-  state.pausedUntil = Date.now() + 5000;
+async function readFromDongle(dev, state, { wait = sleep, pause = true } = {}) {
+  if (pause) state.pausedUntil = Date.now() + 5000;
   await waitOnline(dev, { wait });
   await dev.writeFeature(pad([0xfc]));
   await wait(10);
@@ -88,15 +90,26 @@ async function readFromDongle(dev, state, { wait = sleep } = {}) {
 
 async function getDevId(dev, sel, state, { wait = sleep } = {}) {
   await feNextLen(dev, 0x40, { wait });
-  await sendToDongle(dev, build([0x8f], CHECKSUM.BIT7), sel, state, { wait });
+  await sendToDongle(dev, build([0x8f], CHECKSUM.BIT7), sel, state, { wait, pause: false });
   await wait(10);
-  const r = await readFromDongle(dev, state, { wait });
+  const r = await readFromDongle(dev, state, { wait, pause: false });
   if (!r || r.length < 5 || r[0] !== 0x8f) return 0; // not an 8F echo: the device did not answer (retry next poll)
   return ((r[1] | (r[2] << 8) | (r[3] << 16) | ((r[4] | 0x80) << 24)) >>> 0);
 }
 
+// The keyboard's GET_BATTERY reply through the dongle: byte 1 = level, byte 2 = power
+// state, verified on the A75 on 2026-10-27: 0 = on battery, 1 = charging, 2 = on the
+// charger and full. (The F7 status byte 0 only pulses with typing.)
+async function readPower(dev, state, { wait = sleep } = {}) {
+  await sendToDongle(dev, build([0x83], CHECKSUM.BIT7), 0, state, { wait, pause: false });
+  await wait(80); // let the dongle forward the request before waiting for its reply
+  const r = await readFromDongle(dev, state, { wait, pause: false });
+  return r && r[0] === 0x83 ? r[2] : null;
+}
+
 // One polling round for a dongle_common device (called by the HID manager).
-async function pollStatus(dev, info, { state, wait = sleep, log = () => {} } = {}) {
+// `batteryEveryMs`: how often the keyboard itself is asked for its power state.
+async function pollStatus(dev, info, { state, wait = sleep, log = () => {}, batteryEveryMs = 6000 } = {}) {
   if (state.pausedUntil && Date.now() < state.pausedUntil) return state.last === undefined ? null : state.last;
   const st = await f7Status(dev, { wait });
   if (!st) { state.last = null; return null; }
@@ -109,12 +122,20 @@ async function pollStatus(dev, info, { state, wait = sleep, log = () => {} } = {
   if (st.mouse && st.mouse.online && !state.mouseId) {
     try { state.mouseId = await getDevId(dev, 1, state, { wait }); log(`dongle ${dev.path}: mouse id 0x${state.mouseId.toString(16)}`); } catch (e) { log(`mouse id query failed: ${e.message}`); }
   }
+  if (st.keyboard && st.keyboard.online && st.keyboard.ready && state.keyboardId
+      && (!state.powerAt || Date.now() - state.powerAt >= batteryEveryMs)) {
+    try {
+      const power = await readPower(dev, state, { wait });
+      if (power !== null) state.power = power;
+    } catch (e) { log(`battery query failed: ${e.message}`); }
+    state.powerAt = Date.now();
+  }
   const result = {
     keyboardId: state.keyboardId || 0,
     mouseId: state.mouseId || 0,
-    // status byte 0 is 1 while the device's cable is connected (charging), verified on the A75
-    keyboard: st.keyboard ? { battery: st.battery, isOnline: st.keyboard.online, charging: st.keyboard.flag } : null,
-    mouse: st.mouse ? { battery: st.battery, isOnline: st.mouse.online, charging: st.mouse.flag } : null,
+    // charging: the last power state the keyboard reported (kept while it sleeps)
+    keyboard: st.keyboard ? { battery: st.battery, isOnline: st.keyboard.online, charging: Boolean(state.power) } : null,
+    mouse: st.mouse ? { battery: st.battery, isOnline: st.mouse.online, charging: false } : null,
   };
   state.last = result;
   return result;
@@ -130,7 +151,7 @@ function createFakeResponder() {
       case 0xf6: case 0xfe: return undefined;
       case 0xfc: return pending;
       case 0x8f: pending = Buffer.from([0x8f, 0x90, 0x07, 0x00, 0x00]); return undefined;
-      case 0x83: pending = Buffer.from([0x83, 88]); return undefined;
+      case 0x83: pending = Buffer.from([0x83, 88, 1]); return undefined; // 88 %, charging
       case 0x80: pending = Buffer.from([0x80, 1, 0, 2, 0]); return undefined;
       default: pending = Buffer.from([frame[0]]); return undefined;
     }
@@ -138,4 +159,4 @@ function createFakeResponder() {
 }
 const fakeResponder = createFakeResponder();
 
-module.exports = { parseF7, f7Status, waitOnline, f6Select, feNextLen, sendToDongle, readFromDongle, getDevId, pollStatus, fakeResponder, createFakeResponder, F6_BYTES };
+module.exports = { parseF7, f7Status, waitOnline, f6Select, feNextLen, sendToDongle, readFromDongle, getDevId, readPower, pollStatus, fakeResponder, createFakeResponder, F6_BYTES };

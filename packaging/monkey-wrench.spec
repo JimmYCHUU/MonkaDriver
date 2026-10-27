@@ -7,7 +7,7 @@
 
 Name:           monkey-wrench
 Version:        2.1.66
-Release:        2%{?dist}
+Release:        3%{?dist}
 Summary:        Monkey Wrench: the Monka keyboard driver on Linux (A75 and related keyboards)
 License:        Proprietary (vendor UI) and MIT (Linux port)
 URL:            https://github.com/JimmYCHUU/MonkeyWrench
@@ -52,6 +52,10 @@ desktop-file-validate %{buildroot}%{_datadir}/applications/monkey-wrench.desktop
 %{appdir}/*
 
 %changelog
+* Tue Oct 27 2026 JimmYCHUU <asajibtisamnipun@gmail.com> - 2.1.66-3
+- Battery percentage beside Monka's icon, with a bolt while charging (dongle and cable)
+- The keyboard is recognised on its USB cable (wired mode)
+
 * Sun Oct 18 2026 JimmYCHUU <asajibtisamnipun@gmail.com> - 2.1.66-2
 - Renamed to Monkey Wrench (was monka-driver)
 

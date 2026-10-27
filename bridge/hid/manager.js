@@ -146,7 +146,9 @@ async function createHidManager({
         return m.dev.readFeature();
       });
       const battery = b && b[0] === 0x83 ? b[1] : null;
-      m.status = { id, isOnline: true, wired: true, battery };
+      // byte 2: 0 on battery, 1 charging, 2 full on power (on the cable it is never 0 in practice)
+      const charging = b && b[0] === 0x83 ? b[2] !== 0 : true;
+      m.status = { id, isOnline: true, wired: true, battery, charging };
       log(`wired keyboard ${m.path}: model id 0x${id.toString(16)}, battery ${battery}`);
       reportBattery();
     } catch (e) {
@@ -173,7 +175,7 @@ async function createHidManager({
     for (const m of managed.values()) {
       if (m.info.role.kind !== 'support' || !m.status) continue;
       if (!m.info.role.dongleCommon) {
-        if (m.status.id) return { path: m.path, battery: typeof m.status.battery === 'number' ? m.status.battery : null, charging: true, online: true, wired: true };
+        if (m.status.id) return { path: m.path, battery: typeof m.status.battery === 'number' ? m.status.battery : null, charging: m.status.charging !== false, online: true, wired: true };
         continue;
       }
       const kb = m.status.keyboard;
@@ -273,6 +275,9 @@ async function createHidManager({
         const sel = (req.dangledevtype | 0) === 2 ? 1 : 0;
         await dongleMod.sendToDongle(m.dev, frame, sel, m.dstate, { wait: dongleWait });
       } else {
+        // raw frames to a dongle (e.g. FE "next packet length") pause polling as well, so no
+        // poll lands between them and the packet they announce
+        if (m.info.role.dongleCommon) m.dstate.pausedUntil = Date.now() + 5000;
         await m.dev.writeFeature(frame);
       }
     });
@@ -281,6 +286,7 @@ async function createHidManager({
 
   async function read(req, raw) {
     const m = need(req.devicepath);
+    if (raw && m.info.role.dongleCommon) m.dstate.pausedUntil = Date.now() + 5000;
     const data = await m.run(() => (!raw && m.info.role.dongleCommon ? dongleMod.readFromDongle(m.dev, m.dstate, { wait: dongleWait }) : m.dev.readFeature()));
     const msg = rules.parseRead ? rules.parseRead(data, { raw }) : data;
     log(`${raw ? 'readRawFeature' : 'readMsg'} ${m.path} <- ${Buffer.from(msg).toString('hex')}`);

@@ -207,6 +207,20 @@ test('sendMsg/readMsg to a dongle keyboard run the F7/F6 and F7/FC sequences; ra
   await mgr.close();
 });
 
+test('raw traffic to the dongle pauses status polling too (a poll must not land between FE and its packet)', async () => {
+  const hidModule = new FakeHidModule();
+  const cmd = hidModule.addDevice('/dev/hidraw2');
+  const { createFakeResponder } = require('../bridge/hid/dongle');
+  cmd.responder = createFakeResponder();
+  const mgr = await createHidManager({ readOnly: true, hidModule, watcher: new StubWatcher([A75_CMD]), log: () => {}, pollIntervalMs: 5, dongleWait: async () => {} });
+  await new Promise((r) => setTimeout(r, 30));
+  await mgr.sendRawFeature({ devicepath: '/dev/hidraw2', msg: Buffer.from([0xfe, 0x40]), checksumtype: 2 });
+  cmd.sent.length = 0;
+  await new Promise((r) => setTimeout(r, 40));
+  assert.equal(cmd.sent.length, 0, 'no polling right after raw traffic');
+  await mgr.close();
+});
+
 test('user traffic through the dongle pauses status polling for a while', async () => {
   const hidModule = new FakeHidModule();
   const cmd = hidModule.addDevice('/dev/hidraw2');
@@ -236,9 +250,10 @@ test('onBattery reports the keyboard battery and charging state whenever they ch
 
 const A75_WIRED = { node: '/dev/hidraw6', vid: 0x3151, pid: 0x4015, name: 'ROYUAN Monka A75', interface: 2, collections: [{ usagePage: 0xffff, usage: 2, reportIds: [] }], role: { kind: 'support', dongleCommon: false, ble: false, usagePage: 0xffff, usage: 2, reportIds: [] } };
 // the cabled A75 answers GET_INFOR with its model id 0x0790, as observed on 2026-10-27
-// and GET_BATTERY with the level in byte 1 (100 on the cable)
+// and GET_BATTERY with the level in byte 1 and the power state in byte 2 (1 = charging)
+let wiredPower = 1;
 const wiredResponder = (f) => (f[0] === 0x8f ? Buffer.from([0x8f, 0x90, 0x07, 0x00, 0x00])
-  : f[0] === 0x83 ? Buffer.from([0x83, 0x64, 0x01]) : undefined);
+  : f[0] === 0x83 ? Buffer.from([0x83, 0x64, wiredPower]) : undefined);
 
 test('a device that cannot be opened at plug-in is retried until its permissions arrive', async () => {
   const hidModule = new FakeHidModule();
@@ -292,4 +307,15 @@ test('a 0% reading from an online, uncharging keyboard is treated as unknown (th
   await new Promise((r) => setTimeout(r, 30));
   assert.equal(mgr.battery.battery, 30, 'kept the last real reading');
   await mgr.close();
+});
+
+test('a cabled keyboard\'s bolt also follows GET_BATTERY byte 2', async () => {
+  wiredPower = 0;
+  try {
+    const hidModule = new FakeHidModule();
+    hidModule.addDevice('/dev/hidraw6').responder = wiredResponder;
+    const mgr = await createHidManager({ readOnly: true, hidModule, watcher: new StubWatcher([A75_WIRED]), log: () => {}, pollIntervalMs: 100000 });
+    assert.equal(mgr.battery.charging, false);
+    await mgr.close();
+  } finally { wiredPower = 1; }
 });

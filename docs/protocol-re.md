@@ -189,3 +189,19 @@ Dongle/2.4G housekeeping bytes (not in the list, hard-coded): `F6 sel`, `F7`, `F
 1. F7 poll until keyboard online+ready (≤15×100 ms), `F6 0A` if the dongle's cached selection differs, 10 ms.
 2. Frame = msg padded to 66, `buf[7] = ~(0x83+0+0+0+0+0+0) = 0x7C`; SET_REPORT of `buf[0..64]` = `83 00 00 00 00 00 00 7C 00 …` on interface 2.
 3. `ReadMsg` → F7 loop, `FC`, 20 ms, GET_REPORT 64 bytes → `ResRead.msg = [0x83, …]` (byte 0 is the command echo as returned by the keyboard).
+
+
+## Verified on hardware (Monka A75, 2026-10-27)
+
+Observed with read-only commands while the owner plugged and unplugged the charger:
+
+| Reading | Meaning |
+|---|---|
+| `GET_BATTERY` (`0x83`) reply byte 1 | battery level; jumps to 100 as soon as power is connected |
+| `GET_BATTERY` reply byte 2 | power state: **0** on battery (unplugged 23:27), **1** charging (plugged 23:29, and on the PC cable), **2** on the charger and full |
+| `F7` status byte 0 | pulses to 1 for 8–17 s with keyboard activity; **not** a charging flag |
+| `F7` status byte 7 | byte 7 of the last frame the dongle forwarded (e.g. `0x7c` after `83 …7c`); not status |
+| Cable to the PC | the keyboard switches to wired mode: USB `3151:4015` "ROYUAN Monka A75", command interface = interface 2, `GET_INFOR` id `0x0790` (vendor table `{id:1936, pid:16405}`); the dongle reports it offline |
+
+Monka's helper never extracts a charging state over 2.4 GHz (`batteryState` is hard-coded to 0
+in the interface), so this is Monkey Wrench's own addition.
