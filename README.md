@@ -193,6 +193,11 @@ PingFang fonts and Chromium falls back to its standard font on both systems.
 
 ## Behaviour worth knowing
 
+- The battery percentage is shown next to Monka's battery icon in the top bar, in the same cyan
+  as its fill bar, with a lightning bolt while the keyboard's cable is connected. Monka's own interface draws only the icon, and over the
+  2.4 GHz dongle it is never told the keyboard is charging (on Windows too); Monkey Wrench reads
+  both from the dongle's status reply and adds the label without touching Monka's files.
+
 - The keyboard sleeps after 180 s idle. The dongle then reports it offline, the lights go off
   and the UI shows "Search Device..." until a key is pressed. That is the keyboard, not the
   driver, and it is the same on Windows.
@@ -226,7 +231,7 @@ Everything in `tools/` is a developer aid and nothing in it is packaged.
 npm test
 ```
 
-83 tests with `node:test`, no hardware needed: protobuf codec against hand-computed wire bytes,
+89 tests with `node:test`, no hardware needed: protobuf codec against hand-computed wire bytes,
 gRPC-web framing in both formats with streaming and trailers, origin/host/token checks, the
 checksum rules (including the worked example the keyboard later echoed), the dongle sequences
 against a scripted dongle, the read-only guard, sysfs enumeration against a fake sysfs tree,
@@ -238,6 +243,7 @@ store, system information, and the XDG autostart entry.
 ```
 main.js                 Electron main: window, tray, IPC, bridge lifecycle, token injection
 migrate.js              one-time carry-over of settings and autostart from the former name
+battery-overlay.js      the battery percentage / charging label injected next to Monka's icon
 autostart.js            XDG autostart entry (Electron's API is macOS/Windows only)
 bridge/
   main.js               bridge entry point (plain Node; also run by Electron's utilityProcess)

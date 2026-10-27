@@ -219,3 +219,16 @@ test('user traffic through the dongle pauses status polling for a while', async 
   assert.equal(cmd.sent.filter((b) => b[1] === 0xf7).length, 0, 'no status polls right after user traffic');
   await mgr.close();
 });
+
+test('onBattery reports the keyboard battery and charging state whenever they change', async () => {
+  let st = { keyboardId: 0x80000790, mouseId: 0, keyboard: { battery: 30, isOnline: true, charging: false }, mouse: null };
+  const { mgr } = await setup({ poller: async () => st });
+  const seen = [];
+  mgr.onBattery((b) => seen.push(b));
+  await new Promise((r) => setTimeout(r, 20));
+  st = { ...st, keyboard: { battery: 31, isOnline: true, charging: true } };
+  await new Promise((r) => setTimeout(r, 30));
+  assert.deepEqual(seen.at(-1), { path: '/dev/hidraw2', battery: 31, charging: true, online: true });
+  assert.ok(mgr.battery && mgr.battery.battery === 31, 'last value is available to late subscribers');
+  await mgr.close();
+});

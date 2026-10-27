@@ -52,6 +52,8 @@ async function createHidManager({
   const managed = new Map(); // path -> Managed
   const devListStreams = new Set();
   const venderStreams = new Set();
+  const batteryListeners = new Set();
+  let lastBattery = null;
   let loopLocked = false;
   let pollTimer = null;
   let closed = false;
@@ -110,6 +112,15 @@ async function createHidManager({
     log(`detached ${node}`);
   }
 
+  function reportBattery(m) {
+    const kb = m.status && m.status.keyboard;
+    if (!kb) return;
+    const b = { path: m.path, battery: kb.battery | 0, charging: Boolean(kb.charging), online: Boolean(kb.isOnline) };
+    if (JSON.stringify(b) === JSON.stringify(lastBattery)) return;
+    lastBattery = b;
+    for (const cb of batteryListeners) { try { cb(b); } catch (e) { log('battery listener failed', e.message); } }
+  }
+
   async function pollOnce() {
     if (loopLocked || closed) return;
     let changed = false;
@@ -119,7 +130,7 @@ async function createHidManager({
       if (loopLocked) break;
       try {
         const st = await m.run(() => pollDongle(m.dev, m.info, { log, rules, state: m.dstate, wait: dongleWait }));
-        if (st && JSON.stringify(st) !== JSON.stringify(m.status)) { m.status = st; changed = true; }
+        if (st && JSON.stringify(st) !== JSON.stringify(m.status)) { m.status = st; changed = true; reportBattery(m); }
       } catch (e) {
         log(`status poll ${m.path} failed: ${e.message}`);
       }
@@ -195,6 +206,8 @@ async function createHidManager({
   }
 
   const api = {
+    get battery() { return lastBattery; },
+    onBattery(cb) { batteryListeners.add(cb); if (lastBattery) cb(lastBattery); return () => batteryListeners.delete(cb); },
     get devices() { return [...managed.values()].map((m) => ({ path: m.path, role: m.info.role, status: m.status })); },
     async watchDevList(stream) {
       devListStreams.add(stream);

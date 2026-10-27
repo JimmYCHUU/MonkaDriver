@@ -41,6 +41,7 @@
       "main.js",
       "autostart.js",
       "migrate.js",
+      "battery-overlay.js",
       "bridge/**/*",
       "dist/**/*",
       "company/**/*",

@@ -100,7 +100,7 @@ test('pollStatus reports battery/online and resolves the keyboard id once', asyn
   const hd = await HidDevice.open('/dev/hidraw2', fake);
   const state = {};
   const st = await dongle.pollStatus(hd, { role: { dongleCommon: true } }, { state, wait: fast.wait, log: () => {} });
-  assert.deepEqual(st, { keyboardId: 0x80000790, mouseId: 0, keyboard: { battery: 77, isOnline: true }, mouse: null });
+  assert.deepEqual(st, { keyboardId: 0x80000790, mouseId: 0, keyboard: { battery: 77, isOnline: true, charging: true }, mouse: null });
   const n8f = () => dev.sent.filter((b) => b[1] === 0x8f).length;
   assert.equal(n8f(), 1);
   await dongle.pollStatus(hd, { role: { dongleCommon: true } }, { state, wait: fast.wait, log: () => {} });
@@ -128,7 +128,7 @@ test('pollStatus does not query the device id while the keyboard is asleep (offl
   const { fake, dev } = scriptedDongle({ online: false });
   const hd = await HidDevice.open('/dev/hidraw2', fake);
   const st = await dongle.pollStatus(hd, { role: { dongleCommon: true } }, { state: {}, wait: fast.wait, log: () => {} });
-  assert.deepEqual(st, { keyboardId: 0, mouseId: 0, keyboard: { battery: 88, isOnline: false }, mouse: null });
+  assert.deepEqual(st, { keyboardId: 0, mouseId: 0, keyboard: { battery: 88, isOnline: false, charging: true }, mouse: null });
   assert.equal(dev.sent.filter((b) => b[1] === 0x8f).length, 0, 'no 8F while offline');
   assert.equal(dev.sent.filter((b) => b[1] === 0xf7).length, 1, 'a single F7');
 });
@@ -171,4 +171,17 @@ test('an offline keyboard fails sendToDongle immediately (no 15 retries)', async
   const hd = await HidDevice.open('/dev/hidraw2', fake);
   await assert.rejects(dongle.sendToDongle(hd, Buffer.alloc(64), 0, {}, fast), /not online/);
   assert.equal(dev.sent.filter((b) => b[1] === 0xf7).length, 1);
+});
+
+test('pollStatus reports charging from status byte 0 (cable connected)', async () => {
+  const { fake, dev } = scriptedDongle({ battery: 30 });
+  const hd = await HidDevice.open('/dev/hidraw2', fake);
+  const base = dev.responder;
+  let cable = 1;
+  dev.responder = (frame) => { const r = base(frame); if (frame[0] === 0xf7) r[0] = cable; return r; };
+  const state = {};
+  const ctx = { state, wait: fast.wait, log: () => {} };
+  assert.deepEqual((await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx)).keyboard, { battery: 30, isOnline: true, charging: true });
+  cable = 0; state.pausedUntil = 0;
+  assert.deepEqual((await dongle.pollStatus(hd, { role: { dongleCommon: true } }, ctx)).keyboard, { battery: 30, isOnline: true, charging: false });
 });

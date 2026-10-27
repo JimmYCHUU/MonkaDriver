@@ -112,8 +112,9 @@ async function pollStatus(dev, info, { state, wait = sleep, log = () => {} } = {
   const result = {
     keyboardId: state.keyboardId || 0,
     mouseId: state.mouseId || 0,
-    keyboard: st.keyboard ? { battery: st.battery, isOnline: st.keyboard.online } : null,
-    mouse: st.mouse ? { battery: st.battery, isOnline: st.mouse.online } : null,
+    // status byte 0 is 1 while the device's cable is connected (charging), verified on the A75
+    keyboard: st.keyboard ? { battery: st.battery, isOnline: st.keyboard.online, charging: st.keyboard.flag } : null,
+    mouse: st.mouse ? { battery: st.battery, isOnline: st.mouse.online, charging: st.mouse.flag } : null,
   };
   state.last = result;
   return result;

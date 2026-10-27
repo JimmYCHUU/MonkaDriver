@@ -8,6 +8,7 @@ const crypto = require('node:crypto');
 const remote = require('@electron/remote/main');
 const { Autostart, resolveExec } = require('./autostart');
 const { migrateFromMonkaDriver } = require('./migrate');
+const { overlayScript } = require('./battery-overlay');
 
 const BASE_W = 1200;
 const BASE_H = 788;
@@ -37,6 +38,12 @@ let tray;
 let quitting = false;
 let bridge = null;
 let bridgeRestarts = 0;
+let lastBattery = null;
+
+function pushBattery() {
+  if (!mainWindow || mainWindow.isDestroyed() || !lastBattery) return;
+  mainWindow.webContents.executeJavaScript(`window.__monkeyWrenchBattery && window.__monkeyWrenchBattery(${JSON.stringify(lastBattery)})`).catch(() => {});
+}
 
 const autostart = new Autostart({
   exec: resolveExec({ packaged: app.isPackaged, execPath: process.execPath, appDir: __dirname }),
@@ -67,6 +74,7 @@ function startBridge() {
     bridge.on('message', (msg) => {
       if (msg && msg.type === 'listening' && !settled) { settled = true; log(`bridge listening on ${msg.port} (readOnly=${msg.readOnly}, fake=${msg.fake})`); resolve(true); }
       if (msg && msg.type === 'error' && !settled) { settled = true; resolve(false); }
+      if (msg && msg.type === 'battery') { lastBattery = msg; pushBattery(); }
     });
     bridge.on('exit', (code) => {
       log(`bridge exited with code ${code}`);
@@ -135,6 +143,10 @@ function createWindow() {
 
   // the vendor page titles itself "Quantum Mechanical Kit"; keep the app's own name in the task manager
   mainWindow.on('page-title-updated', (e) => e.preventDefault());
+  // battery percentage and charging state beside Monka's own battery icon
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.webContents.executeJavaScript(overlayScript()).then(pushBattery).catch((e) => log('battery overlay failed', e));
+  });
   mainWindow.on('hide', () => mainWindow && mainWindow.webContents.send('hide', true));
   mainWindow.on('show', () => mainWindow && mainWindow.webContents.send('show', true));
   mainWindow.on('closed', () => { mainWindow = null; });
