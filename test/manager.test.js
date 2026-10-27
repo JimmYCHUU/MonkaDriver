@@ -173,7 +173,8 @@ test('plain USB support devices are never polled with dongle frames', async () =
   const wired = hidModule.addDevice('/dev/hidraw4');
   const mgr = await createHidManager({ readOnly: true, hidModule, watcher: new StubWatcher([WIRED]), log: () => {}, pollIntervalMs: 5 });
   await new Promise((r) => setTimeout(r, 30));
-  assert.equal(wired.sent.length, 0, 'no F7/F6/FE/FC/8F sent to a wired keyboard');
+  const housekeeping = wired.sent.filter((b) => [0xf7, 0xf6, 0xfe, 0xfc].includes(b[1]));
+  assert.equal(housekeeping.length, 0, 'no dongle housekeeping (F7/F6/FE/FC) sent to a wired keyboard');
   const s = fakeStream();
   await mgr.watchDevList(s);
   assert.deepEqual(s.written[0].devlist[0].dev.path, '/dev/hidraw4');
@@ -230,5 +231,65 @@ test('onBattery reports the keyboard battery and charging state whenever they ch
   await new Promise((r) => setTimeout(r, 30));
   assert.deepEqual(seen.at(-1), { path: '/dev/hidraw2', battery: 31, charging: true, online: true });
   assert.ok(mgr.battery && mgr.battery.battery === 31, 'last value is available to late subscribers');
+  await mgr.close();
+});
+
+const A75_WIRED = { node: '/dev/hidraw6', vid: 0x3151, pid: 0x4015, name: 'ROYUAN Monka A75', interface: 2, collections: [{ usagePage: 0xffff, usage: 2, reportIds: [] }], role: { kind: 'support', dongleCommon: false, ble: false, usagePage: 0xffff, usage: 2, reportIds: [] } };
+// the cabled A75 answers GET_INFOR with its model id 0x0790, as observed on 2026-10-27
+// and GET_BATTERY with the level in byte 1 (100 on the cable)
+const wiredResponder = (f) => (f[0] === 0x8f ? Buffer.from([0x8f, 0x90, 0x07, 0x00, 0x00])
+  : f[0] === 0x83 ? Buffer.from([0x83, 0x64, 0x01]) : undefined);
+
+test('a device that cannot be opened at plug-in is retried until its permissions arrive', async () => {
+  const hidModule = new FakeHidModule();
+  hidModule.addDevice('/dev/hidraw6').responder = wiredResponder;
+  const realOpen = hidModule.HIDAsync.open;
+  let fails = 2;
+  hidModule.HIDAsync.open = async (p) => { if (fails-- > 0) throw new Error('Failed to open a device'); return realOpen(p); };
+  const mgr = await createHidManager({ readOnly: true, hidModule, watcher: new StubWatcher([A75_WIRED]), log: () => {}, pollIntervalMs: 100000, openRetryMs: 5 });
+  await new Promise((r) => setTimeout(r, 80));
+  const s = fakeStream();
+  await mgr.watchDevList(s);
+  assert.equal(s.written[0].devlist.length, 1, 'attached after the retries');
+  assert.equal(s.written[0].devlist[0].dev.id, 1936);
+  await mgr.close();
+});
+
+test('a cabled keyboard is identified by the model id it reports to GET_INFOR, with no dongle frames', async () => {
+  const hidModule = new FakeHidModule();
+  const dev = hidModule.addDevice('/dev/hidraw6');
+  dev.responder = wiredResponder;
+  const mgr = await createHidManager({ readOnly: true, hidModule, watcher: new StubWatcher([A75_WIRED]), log: () => {}, pollIntervalMs: 100000 });
+  const s = fakeStream();
+  await mgr.watchDevList(s);
+  const d = s.written[0].devlist[0].dev;
+  assert.equal(d.id, 1936, 'matches the vendor table entry {id:1936, pid:16405}');
+  assert.equal(d.isonline, true);
+  assert.equal(d.pid, 0x4015);
+  assert.equal(dev.sent[0][1], 0x8f);
+  assert.equal(dev.sent[0][8], 0x70, 'BIT7 checksum, as the vendor sends it');
+  assert.ok(dev.sent.every((b) => ![0xf7, 0xf6, 0xfe, 0xfc].includes(b[1])));
+  await mgr.close();
+});
+
+test('a cabled keyboard is reported as charging, and wins over its sleeping dongle', async () => {
+  const hidModule = new FakeHidModule();
+  hidModule.addDevice('/dev/hidraw6').responder = wiredResponder;
+  hidModule.addDevice('/dev/hidraw2');
+  const offline = { keyboardId: 0x80000790, mouseId: 0, keyboard: { battery: 100, isOnline: false, charging: false }, mouse: null };
+  const mgr = await createHidManager({ readOnly: true, hidModule, watcher: new StubWatcher([A75_CMD, A75_WIRED]), log: () => {}, pollIntervalMs: 5, dongleStatus: async () => offline });
+  await new Promise((r) => setTimeout(r, 30));
+  assert.deepEqual(mgr.battery, { path: '/dev/hidraw6', battery: 100, charging: true, online: true, wired: true });
+  await mgr.close();
+});
+
+test('a 0% reading from an online, uncharging keyboard is treated as unknown (the dongle emits it while the cable goes in)', async () => {
+  let st = { keyboardId: 0x80000790, mouseId: 0, keyboard: { battery: 30, isOnline: true, charging: false }, mouse: null };
+  const { mgr } = await setup({ poller: async () => st });
+  await new Promise((r) => setTimeout(r, 20));
+  assert.equal(mgr.battery.battery, 30);
+  st = { ...st, keyboard: { battery: 0, isOnline: true, charging: false } };
+  await new Promise((r) => setTimeout(r, 30));
+  assert.equal(mgr.battery.battery, 30, 'kept the last real reading');
   await mgr.close();
 });

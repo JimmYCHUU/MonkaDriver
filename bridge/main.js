@@ -34,7 +34,7 @@ async function main() {
   try {
     const { createHidManager } = require('./hid/manager');
     hid = await createHidManager({ readOnly, fake, log });
-    hid.onBattery((b) => notifyParent({ type: 'battery', ...b }));
+    hid.onBattery((b) => notifyParent({ type: 'battery', state: b }));
   } catch (e) {
     log('HID manager unavailable:', e.message);
   }

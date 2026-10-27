@@ -41,7 +41,7 @@ let bridgeRestarts = 0;
 let lastBattery = null;
 
 function pushBattery() {
-  if (!mainWindow || mainWindow.isDestroyed() || !lastBattery) return;
+  if (!mainWindow || mainWindow.isDestroyed()) return;
   mainWindow.webContents.executeJavaScript(`window.__monkeyWrenchBattery && window.__monkeyWrenchBattery(${JSON.stringify(lastBattery)})`).catch(() => {});
 }
 
@@ -74,7 +74,7 @@ function startBridge() {
     bridge.on('message', (msg) => {
       if (msg && msg.type === 'listening' && !settled) { settled = true; log(`bridge listening on ${msg.port} (readOnly=${msg.readOnly}, fake=${msg.fake})`); resolve(true); }
       if (msg && msg.type === 'error' && !settled) { settled = true; resolve(false); }
-      if (msg && msg.type === 'battery') { lastBattery = msg; pushBattery(); }
+      if (msg && msg.type === 'battery') { lastBattery = msg.state || null; pushBattery(); }
     });
     bridge.on('exit', (code) => {
       log(`bridge exited with code ${code}`);

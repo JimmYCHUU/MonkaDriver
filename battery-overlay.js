@@ -5,6 +5,8 @@
 // Electron main process injects this small script into the page instead.
 
 // Self-contained (it is also serialised into the page), so no outer references.
+// Just the number the keyboard reports; the bolt alone marks charging. (On cable
+// power the keyboard reports 100% whatever its real charge.)
 function batteryText(state) {
   if (!state || typeof state.battery !== 'number') return '';
   var pct = Math.max(0, Math.min(100, Math.round(state.battery)));
@@ -14,7 +16,9 @@ function batteryText(state) {
 // Runs inside the page. Finds the vendor's battery icon (the 24 px image whose
 // sibling is the coloured fill bar) and keeps a label beside it: a drawn bolt
 // while charging (an emoji would ignore the colour) and the percentage, both in
-// the bar's cyan. Re-attaches whenever React re-renders the title bar.
+// the bar's cyan. A keyboard on its cable has no vendor icon (Monka draws it only
+// for wireless devices), so on the main view the label then brings its own icon
+// at the same spot. Re-attaches whenever React re-renders the title bar.
 function pageScript(batteryText) {
   if (window.__monkeyWrenchBattery) return;
   var state = null;
@@ -54,13 +58,49 @@ function pageScript(batteryText) {
     box.appendChild(el);
     return el;
   }
+  // our own icon, used when the vendor's is not drawn: Monka's 24 px battery box
+  // at the position Monka uses (923, 22 in the 1200x788 page), drawn in cyan
+  function ownIcon() {
+    var box = document.getElementById('mw-battery-box');
+    if (box) return box;
+    box = document.createElement('div');
+    box.id = 'mw-battery-box';
+    box.style.cssText = 'position:fixed;left:923px;top:22px;width:24px;height:12px;pointer-events:none;z-index:10;';
+    var icon = document.createElementNS(SVG, 'svg');
+    icon.setAttribute('viewBox', '0 0 24 12');
+    icon.setAttribute('width', '24');
+    icon.setAttribute('height', '12');
+    icon.setAttribute('aria-hidden', 'true');
+    var outline = document.createElementNS(SVG, 'rect');
+    outline.setAttribute('x', '0.75'); outline.setAttribute('y', '0.75');
+    outline.setAttribute('width', '19.5'); outline.setAttribute('height', '10.5'); outline.setAttribute('rx', '2');
+    outline.setAttribute('fill', 'none'); outline.setAttribute('stroke', CYAN); outline.setAttribute('stroke-width', '1.5');
+    var nub = document.createElementNS(SVG, 'rect');
+    nub.setAttribute('x', '20.5'); nub.setAttribute('y', '3.5'); nub.setAttribute('width', '2.5'); nub.setAttribute('height', '5');
+    nub.setAttribute('rx', '0.5'); nub.setAttribute('fill', CYAN);
+    var level = document.createElementNS(SVG, 'rect');
+    level.setAttribute('x', '3'); level.setAttribute('y', '3'); level.setAttribute('width', '14'); level.setAttribute('height', '6');
+    level.setAttribute('fill', CYAN); level.setAttribute('fill-opacity', '0.5'); // Monka dims the fill while charging
+    box.__level = level;
+    icon.appendChild(outline);
+    icon.appendChild(nub);
+    icon.appendChild(level);
+    box.appendChild(icon);
+    document.body.appendChild(box);
+    return box;
+  }
   function render() {
     var found = findIcon();
     var el = document.getElementById('mw-battery');
-    if (!found || !state) { if (el) el.remove(); return; }
-    if (!el || el.parentElement !== found.box) {
+    var own = document.getElementById('mw-battery-box');
+    var host = null;
+    if (state && found) host = found.box;
+    else if (state && state.charging && document.querySelector('img[src*="topnav_logo"]')) host = ownIcon();
+    if (found && own) { own.remove(); own = null; }
+    if (!host) { if (el) el.remove(); if (own) own.remove(); return; }
+    if (!el || el.parentElement !== host) {
       if (el) el.remove();
-      el = build(found.box);
+      el = build(host);
     }
     // only write what changed: every text write is a DOM mutation that re-triggers the observer
     var text = batteryText(state);
@@ -69,6 +109,13 @@ function pageScript(batteryText) {
     if (el.__bolt.style.display !== display) el.__bolt.style.display = display;
     var title = state.charging ? 'Charging' : (state.online ? 'On battery' : 'Keyboard asleep');
     if (el.title !== title) el.title = title;
+    if (host.__level && typeof state.battery === 'number') {
+      // like Monka's fill: up to 14 px wide, dimmed while charging
+      var w = String(Math.max(1, Math.ceil(Math.min(100, state.battery) / 100 * 14)));
+      if (host.__level.getAttribute && host.__level.getAttribute('width') !== w) host.__level.setAttribute('width', w);
+      var op = state.charging ? '0.5' : '1';
+      if (host.__level.getAttribute && host.__level.getAttribute('fill-opacity') !== op) host.__level.setAttribute('fill-opacity', op);
+    }
   }
   new MutationObserver(function () { render(); }).observe(document.body, { childList: true, subtree: true });
   window.__monkeyWrenchBattery = function (s) { state = s; render(); };

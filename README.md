@@ -16,7 +16,7 @@ and replaces the helper with a Node.js bridge that speaks the keyboard's protoco
 a tray icon. It looks and behaves like the Windows driver because it *is* the Windows driver's
 interface.
 
-Built for and verified on the **Monka A75** over its 2.4 GHz dongle. Every other keyboard in
+Built for and verified on the **Monka A75**, over its 2.4 GHz dongle and over its USB cable. Every other keyboard in
 the vendor's device table is enumerated the same way, but only the A75 has been tested.
 
 `Electron 44` · `Node.js 22+` · `node-hid (hidraw)` · `gRPC-web` · `protobufjs` · `rpmbuild`
@@ -194,7 +194,14 @@ PingFang fonts and Chromium falls back to its standard font on both systems.
 ## Behaviour worth knowing
 
 - The battery percentage is shown next to Monka's battery icon in the top bar, in the same cyan
-  as its fill bar, with a lightning bolt while the keyboard's cable is connected. Monka's own interface draws only the icon, and over the
+  as its fill bar, with a ⚡ in front while the keyboard is charging. On cable power the keyboard
+  reports 100% whatever its real charge (a keyboard at 30% read 100% the moment its cable went in).
+  Monka draws the icon only for wireless keyboards, so on the cable Monkey Wrench draws one at the
+  same spot.
+- Plugged into the computer by USB-C, the keyboard switches to wired mode and appears as a separate
+  device (`3151:4015`, "ROYUAN Monka A75"); the dongle then reports it offline. Monkey Wrench
+  identifies the wired keyboard by the model id it reports (`0x0790`) and the interface shows
+  **USB** in its status bar. Unplugged, it falls back to the dongle by itself. Monka's own interface draws only the icon, and over the
   2.4 GHz dongle it is never told the keyboard is charging (on Windows too); Monkey Wrench reads
   both from the dongle's status reply and adds the label without touching Monka's files.
 
@@ -231,7 +238,7 @@ Everything in `tools/` is a developer aid and nothing in it is packaged.
 npm test
 ```
 
-89 tests with `node:test`, no hardware needed: protobuf codec against hand-computed wire bytes,
+95 tests with `node:test`, no hardware needed: protobuf codec against hand-computed wire bytes,
 gRPC-web framing in both formats with streaming and trailers, origin/host/token checks, the
 checksum rules (including the worked example the keyboard later echoed), the dongle sequences
 against a scripted dongle, the read-only guard, sysfs enumeration against a fake sysfs tree,

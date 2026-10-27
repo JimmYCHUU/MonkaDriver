@@ -43,6 +43,8 @@ async function createHidManager({
   dongleStatus,
   frameRules,
   dongleWait, // test hook: replaces the protocol sleeps
+  openRetryMs = 400, // hidraw nodes appear before udev grants the user access; retry opens
+  openRetries = 6,
 } = {}) {
   if (!hidModule) hidModule = fake ? makeFakeModule() : require('node-hid');
   if (!watcher) watcher = fake ? makeFakeWatcher() : new DeviceWatcher();
@@ -54,6 +56,9 @@ async function createHidManager({
   const venderStreams = new Set();
   const batteryListeners = new Set();
   let lastBattery = null;
+  const lastRealBattery = new Map(); // dongle path -> last non-zero reading
+  const retryTimers = new Map(); // node -> timer of a pending open retry
+  const sleep = dongleWait || ((ms) => new Promise((r) => setTimeout(r, ms)));
   let loopLocked = false;
   let pollTimer = null;
   let closed = false;
@@ -81,15 +86,30 @@ async function createHidManager({
   }
 
   // ------------------------------------------------------------ devices --
-  async function attach(info) {
+  async function attach(info, attempt = 0) {
     const m = new Managed(info);
     managed.set(info.node, m);
     try {
       m.dev = await HidDevice.open(info.node, hidModule);
     } catch (e) {
-      log(`open ${info.node} failed: ${e.message}`);
       managed.delete(info.node);
-      return;
+      if (closed || attempt >= openRetries) { log(`open ${info.node} failed: ${e.message}`); return false; }
+      // a freshly plugged device's node exists before udev grants the user access to it
+      const delay = openRetryMs * 2 ** attempt;
+      log(`open ${info.node} failed (${e.message}); retrying in ${delay} ms`);
+      const timer = setTimeout(() => {
+        retryTimers.delete(info.node);
+        if (closed) return;
+        attach(info, attempt + 1).then(async (ok) => {
+          if (!ok) return;
+          await identifyWired(managed.get(info.node));
+          await pollOnce();
+          broadcast(CHANGE.ADD);
+        }).catch((err) => log('late attach failed', err));
+      }, delay);
+      if (timer.unref) timer.unref();
+      retryTimers.set(info.node, timer);
+      return false;
     }
     if (info.role.kind === 'vender') {
       // the interface carries other report ids too (NKRO, consumer, mouse); the
@@ -102,20 +122,75 @@ async function createHidManager({
       });
     }
     log(`attached ${info.node} (${info.role.kind}${info.role.dongleCommon ? ', dongle' : ''}) ${info.vid.toString(16)}:${info.pid.toString(16)}`);
+    return true;
+  }
+
+  // A keyboard on its USB cable is a plain support device: it is identified by
+  // the model id it reports to GET_INFOR (0x8F), the same id the vendor table
+  // lists for the wired product (e.g. A75: 0x0790 = 1936). Read-only.
+  async function identifyWired(m) {
+    if (!m || !m.dev || m.info.role.kind !== 'support' || m.info.role.dongleCommon) return;
+    if (m.status && m.status.id) return;
+    try {
+      const r = await m.run(async () => {
+        await m.dev.writeFeature(rules.build([0x8f], 0));
+        await sleep(20);
+        return m.dev.readFeature();
+      });
+      if (!r || r[0] !== 0x8f) return;
+      const id = (r[1] | (r[2] << 8) | (r[3] << 16) | (r[4] << 24)) >>> 0;
+      // and its battery level (GET_BATTERY, byte 1); on the cable it reads 100
+      const b = await m.run(async () => {
+        await m.dev.writeFeature(rules.build([0x83], 0));
+        await sleep(20);
+        return m.dev.readFeature();
+      });
+      const battery = b && b[0] === 0x83 ? b[1] : null;
+      m.status = { id, isOnline: true, wired: true, battery };
+      log(`wired keyboard ${m.path}: model id 0x${id.toString(16)}, battery ${battery}`);
+      reportBattery();
+    } catch (e) {
+      log(`identify ${m.path} failed: ${e.message}`);
+    }
   }
 
   async function detach(node) {
+    const t = retryTimers.get(node);
+    if (t) { clearTimeout(t); retryTimers.delete(node); }
     const m = managed.get(node);
     if (!m) return;
     managed.delete(node);
     if (m.dev) await m.dev.close();
     log(`detached ${node}`);
+    reportBattery();
   }
 
-  function reportBattery(m) {
-    const kb = m.status && m.status.keyboard;
-    if (!kb) return;
-    const b = { path: m.path, battery: kb.battery | 0, charging: Boolean(kb.charging), online: Boolean(kb.isOnline) };
+  // The battery shown to the user: a keyboard on its cable wins (it is charging),
+  // then a dongle whose keyboard is awake, then any dongle.
+  function currentBattery() {
+    let awake = null;
+    let asleep = null;
+    for (const m of managed.values()) {
+      if (m.info.role.kind !== 'support' || !m.status) continue;
+      if (!m.info.role.dongleCommon) {
+        if (m.status.id) return { path: m.path, battery: typeof m.status.battery === 'number' ? m.status.battery : null, charging: true, online: true, wired: true };
+        continue;
+      }
+      const kb = m.status.keyboard;
+      if (!kb) continue;
+      let battery = kb.battery | 0;
+      // the dongle briefly reports 0% while the cable goes in; the vendor UI ignores 0 too
+      if (battery === 0 && !kb.charging) battery = lastRealBattery.has(m.path) ? lastRealBattery.get(m.path) : null;
+      else lastRealBattery.set(m.path, battery);
+      const b = { path: m.path, battery, charging: Boolean(kb.charging), online: Boolean(kb.isOnline) };
+      if (kb.isOnline && !awake) awake = b;
+      else if (!asleep) asleep = b;
+    }
+    return awake || asleep;
+  }
+
+  function reportBattery() {
+    const b = currentBattery();
     if (JSON.stringify(b) === JSON.stringify(lastBattery)) return;
     lastBattery = b;
     for (const cb of batteryListeners) { try { cb(b); } catch (e) { log('battery listener failed', e.message); } }
@@ -125,12 +200,18 @@ async function createHidManager({
     if (loopLocked || closed) return;
     let changed = false;
     for (const m of [...managed.values()]) {
-      // only dongles have a status protocol; wired keyboards are simply "online"
+      // only dongles have a status protocol; a cabled keyboard is online and charging,
+      // and is only asked for its model id until it answers
+      if (m.info.role.kind === 'support' && !m.info.role.dongleCommon && m.dev && !(m.status && m.status.id)) {
+        await identifyWired(m);
+        if (m.status && m.status.id) changed = true;
+        continue;
+      }
       if (m.info.role.kind !== 'support' || !m.info.role.dongleCommon || !m.dev) continue;
       if (loopLocked) break;
       try {
         const st = await m.run(() => pollDongle(m.dev, m.info, { log, rules, state: m.dstate, wait: dongleWait }));
-        if (st && JSON.stringify(st) !== JSON.stringify(m.status)) { m.status = st; changed = true; reportBattery(m); }
+        if (st && JSON.stringify(st) !== JSON.stringify(m.status)) { m.status = st; changed = true; reportBattery(); }
       } catch (e) {
         log(`status poll ${m.path} failed: ${e.message}`);
       }
@@ -150,6 +231,7 @@ async function createHidManager({
     const job = (async () => {
       for (const d of ev.removed) await detach(d.node);
       for (const d of ev.added) await attach(d);
+      for (const d of ev.added) await identifyWired(managed.get(d.node));
       if (ev.type === 'INIT') {
         await pollOnce();
         broadcast(CHANGE.INIT);
@@ -231,6 +313,8 @@ async function createHidManager({
     async cleanDev() {},
     async close() {
       closed = true;
+      for (const t of retryTimers.values()) clearTimeout(t);
+      retryTimers.clear();
       if (pollTimer) clearInterval(pollTimer);
       pollTimer = null;
       watcher.stop();
